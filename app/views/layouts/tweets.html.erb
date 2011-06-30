@@ -1,6 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+<!--
+# Copyright (c) 2011 ActiveState Software Inc.
+# See the file LICENSE.txt for licensing information.
+-->
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
   <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
@@ -67,7 +71,7 @@
         var chart = new google.visualization.ColumnChart(document.getElementById('visualization'));
         chart.draw(data, {curveType: "function",
                         enableEvents: true,
-                          title: "Tweets per day",
+                          title: "Tweets per hour",
                           colors: colors_for_candidates,
                         width: 1000, height: 400,
                         vAxis: {maxValue: <%= @maxSize %>}}
@@ -122,6 +126,58 @@
 
       google.setOnLoadCallback(drawVisualization);
       
+      var checkOlderLinksID = 0;
+      var checkNewerLinksID = 0;
+      
+      function hasActiveLink(id) {
+        var element = document.getElementById(id);
+        if (!element) return false;
+        return element.hasAttribute("hasLink");
+      }
+      var checkOlderLinksURL = "<%= url_for :controller => 'tweets', :action => 'hasOlderPosts'  %>";
+      var updateOlderLinks = function(result) {
+        if (result) {
+          clearInterval(checkOlderLinksID);
+          checkOlderLinksID = 0;
+          var olderLinksElement = document.getElementById('olderLinkWrapper');
+          olderLinksElement.setAttribute("hasLink", 1);
+          olderLinksElement.innerHTML = '<%= link_to "Older", :controller => "tweets", :action => "index", :startDateISO => @linkInfo[:prevLinks][:startDate],
+                                       :endDateISO   => @linkInfo[:prevLinks][:endDate]  %>';
+        }
+      };
+      var checkOlderLinks = function() {
+        jQuery.getJSON(checkOlderLinksURL,
+                       {startDateISO:isoStartDates[0],
+                        endDateISO: gEndDate},
+                        updateOlderLinks);
+      };
+      
+      var checkNewerLinksURL = "<%= url_for :controller => 'tweets', :action => 'hasNewerPosts'  %>";
+      var updateNewerLinks = function(result) {
+        if (result) {
+          clearInterval(checkNewerLinksID);
+          checkNewerLinksID = 0;
+          var newerLinksElement = document.getElementById('newerLinkWrapper');
+          newerLinksElement.setAttribute("hasLink", 1);
+          newerLinksElement.innerHTML = '<%= link_to "Newer", :controller => "tweets", :action => "index", :startDateISO => @linkInfo[:nextLinks][:startDate],
+                                       :endDateISO   => @linkInfo[:nextLinks][:endDate]  %>';
+        }
+      };
+      var checkNewerLinks = function() {
+        jQuery.getJSON(checkNewerLinksURL,
+                       {startDateISO:isoStartDates[0],
+                        endDateISO: gEndDate},
+                        updateNewerLinks);
+      };
+      
+      if (!hasActiveLink('olderLinkWrapper')) {
+        //Check once a minute
+        checkOlderLinksID = setInterval(checkOlderLinks, 60 * 1000);
+      }
+      if (!hasActiveLink('newerLinkWrapper')) {
+        checkNewerLinksID = setInterval(checkNewerLinks, 60 * 1000);
+      }
+      
       var getEndDate = function(row) {
         if (row < gNumRows - 1) {
           return isoStartDates[row  + 1]
@@ -162,25 +218,28 @@
   <% end %>
 </head>
 <body>
+<div style="height: 149px; overflow: hidden; position: fixed;
+            top: 0; left: 0; z-index:3;">
+    <a href="http://www.activestate.com/cloud"><img  alt="Powered by Stackato"
+       src="http://templates.activestate.com/images/stackato-ribbon/top-left.png"></a>
+</div>
 
 <p style="color: green"><%= notice %></p>
 
 <%= yield %>
 <% if defined? @maxSize %>
   <div id="visualization" style="width: 500px; height: 400px;"></div>
-  <% if @linkInfo[:prevLinks] || @linkInfo[:nextLinks]  %>
-    <% if @linkInfo[:prevLinks] %>
-      <%= link_to "Older", :controller => "tweets", :action => "index", :startDateISO => @linkInfo[:prevLinks][:startDate],
-                                       :endDateISO   => @linkInfo[:prevLinks][:endDate]  %>
-    <% else %>
-      [No earlier data]
-    <% end %> |
-    <% if @linkInfo[:nextLinks] %>
-      <%= link_to "Newer", :controller => "tweets", :action => "index", :startDateISO => @linkInfo[:nextLinks][:startDate],
-                                       :endDateISO   => @linkInfo[:nextLinks][:endDate] %>
-    <% else %>
-      [ No later data ]
-    <% end %>
+  <% if @hasLinkInfo[:prevLinks] %>
+    <span id="olderLinkWrapper" hasLink="1"><%= link_to "Older", {:controller => "tweets", :action => "index", :startDateISO => @linkInfo[:prevLinks][:startDate],
+                                     :endDateISO   => @linkInfo[:prevLinks][:endDate]} %></span>
+  <% else %>
+    <span id="olderLinkWrapper">[No earlier data]</span>
+  <% end %> |
+  <% if @hasLinkInfo[:nextLinks] %>
+    <span id="newerLinkWrapper" hasLink="1" hasLink="0"><%= link_to "Newer", :controller => "tweets", :action => "index", :startDateISO => @linkInfo[:nextLinks][:startDate],
+                                     :endDateISO   => @linkInfo[:nextLinks][:endDate] %></span>
+  <% else %>
+    <span id="newerLinkWrapper">[No later data]</span>
   <% end %>
   <div id="selectedColumn" style="display: none;"></div>
   <div id="twitterLink" style="display: none;">

@@ -1,38 +1,56 @@
+# Copyright (c) 2011 ActiveState Software Inc.
+# See the file LICENSE.txt for licensing information.
+
 require 'date'
 
 class TweetsController < ApplicationController
   # GET /tweets
   # GET /tweets.xml
   @@CANDIDATE_CUTOFF = 10
-  def index
-    startDateISO = params[:startDateISO] # YYYY-MM-DD
-    endDateISO = params[:endDateISO]
-    candidateCutoff = params[:cutoff] || @@CANDIDATE_CUTOFF
-    if startDateISO.nil? || endDateISO.nil?
-      now = DateTime.now.utc
-      endDate = DateTime.new(now.year, now.month, now.day, now.hour) + 1.hour
-      startDate = endDate - 6.hours
-      numIntervals = 6
-      intervalSize = 1.hour
-    else
-      startDate = DateTime.parse(startDateISO, true)
-      endDate = DateTime.parse(endDateISO, true)
-      numIntervals = 6
-      intervalSize = ((endDate.to_time.to_i - startDate.to_time.to_i)/numIntervals).seconds.to_i
+  
+  def startDebugger
+    # set rdbgpdir=<path to main Ruby debugger module, rdbgp.rb>
+    ENV['RUBYDB_OPTS'] = 'remoteport=pacer.activestate.com:2345 LogFile=/tmp/rdbgp.txt'
+    rdgpdir=File.dirname(File.expand_path("../../../rubylib/rdbgp.rb", __FILE__))
+    $:.push(rdgpdir)
+    require 'rdbgp'
+    _not_used = 1
+    File.open("/tmp/rdbgp-live.txt", 'w') do |fd|
+      fd.puts("Are we writing to /tmp/rdbgp-live.txt? : #{_not_used}")
     end
-    @isoFinalEndDate = finalEndDate = endDate
-    endDate = startDate
+    redirect_to :action => :index
+  end
+  
+  def hasOlderPosts(timeMetrics=nil)
+    timeMetrics = calcTimeMetrics() if timeMetrics.nil?
+    hasPrevTweet = calcHasOlderPosts(timeMetrics)
+    render :text => hasPrevTweet ? 1 : 0
+  end
+  
+  def hasNewerPosts(timeMetrics=nil)
+    timeMetrics = calcTimeMetrics() if timeMetrics.nil?
+    hasNextTweet = calcHasNewerPosts(timeMetrics)
+    render :text => hasNextTweet ? 1 : 0
+  end
+  
+  def index
+    timeMetrics = calcTimeMetrics()
+    @isoFinalEndDate = finalEndDate = timeMetrics[:finalEndDate]
+    startDate = timeMetrics[:startDate]
+    endDate = timeMetrics[:endDate]
+    delta = timeMetrics[:delta]
+    intervalSize = timeMetrics[:intervalSize]
     @intervalInfo = []
     @formatTimes = ["%b %d %Y, %I:%M %p", "%I:%M %p"]
     @candidates = Candidate.find(:all)
-    @linkInfo = {}
-    delta = (finalEndDate.to_i - startDate.to_i).seconds
-    if Tweet.first(:conditions => ["publishedAt < ?", startDate])
-      @linkInfo[:prevLinks]  = { :startDate => startDate - delta, :endDate =>  startDate}
-    end
-    if Tweet.first(:conditions => ["publishedAt >= ?", finalEndDate])
-      @linkInfo[:nextLinks]  = { :startDate => finalEndDate, :endDate => finalEndDate + delta}
-    end
+    @linkInfo = {
+      :prevLinks  => { :startDate => startDate - delta, :endDate =>  startDate},
+      :nextLinks  => { :startDate => finalEndDate, :endDate =>  finalEndDate + delta},
+    }
+    @hasLinkInfo = {
+      :prevLinks  => calcHasOlderPosts(timeMetrics),
+      :nextLinks  => calcHasNewerPosts(timeMetrics),
+    }
     @maxSize = 0
     total_num_tweets_by_candidate = Hash.new(0)
     while true
@@ -57,6 +75,7 @@ class TweetsController < ApplicationController
         :num_tweets_by_candidate => num_tweets_by_candidate
       })
     end
+    candidateCutoff = params[:cutoff] || @@CANDIDATE_CUTOFF
     @candidates_to_drop = {}
     if candidateCutoff != "none" && @candidates.size > candidateCutoff
       counts = total_num_tweets_by_candidate.map{|k, v| [v,k]}.sort{|a,b| a[0] <=> b[0] }
@@ -316,6 +335,53 @@ class TweetsController < ApplicationController
       format.xml  { render :xml => @tweet }
     end
   end
+  
+  private
+  
+  def calcHasOlderPosts(timeMetrics)
+    startDate = timeMetrics[:startDate]
+    prevStartDate = startDate - timeMetrics[:delta]
+    hasPrevTweet = Tweet.first(:conditions => ["publishedAt >= ? and publishedAt < ? ",
+                                               prevStartDate, startDate])
+    return hasPrevTweet
+  end
+  
+  def calcHasNewerPosts(timeMetrics)
+    finalEndDate = timeMetrics[:finalEndDate]
+    nextFinalEndDate = finalEndDate + timeMetrics[:delta]
+    hasNextTweet = Tweet.first(:conditions => ["publishedAt >= ? and publishedAt < ? ",
+                                               finalEndDate, nextFinalEndDate])
+    return hasNextTweet
+  end
+  
+  def calcTimeMetrics
+    startDateISO = params[:startDateISO] # YYYY-MM-DD
+    endDateISO = params[:endDateISO]
+    if startDateISO.nil? || endDateISO.nil?
+      now = DateTime.now.utc
+      endDate = DateTime.new(now.year, now.month, now.day, now.hour) + 1.hour
+      startDate = endDate - 6.hours
+      numIntervals = 6
+      intervalSize = 1.hour
+    else
+      startDate = DateTime.parse(startDateISO, true)
+      endDate = DateTime.parse(endDateISO, true)
+      numIntervals = 6
+      intervalSize = ((endDate.to_time.to_i - startDate.to_time.to_i)/numIntervals).seconds.to_i
+    end
+    finalEndDate = endDate
+    endDate = startDate
+    delta = (finalEndDate.to_i - startDate.to_i).seconds
+    return {
+      :startDate => startDate,
+      :endDate => endDate,
+      :finalEndDate => finalEndDate,
+      :numIntervals => numIntervals,
+      :intervalSize => intervalSize,
+      :delta => delta,
+    }
+  end
+  
   ####
   ##### GET /tweets/new
   ##### GET /tweets/new.xml

@@ -1,22 +1,35 @@
-# Prezbuzz: a Rails 3.0 application for Stackato to track activity in the 
-# current US election
+# Prezbuzz
 
-## To run
+Prezbuzz is a Rails 3.0 application that tracks the twitter activity
+related to the candidates running for the American 2012 Presidential Election
 
-# stackato push prezbuzz
+See LICENSE.txt for the license on PrezBuzz
 
-# Bind a Mysql service
+To get Prezbuzz working, it needs to be deployed, initialized, and
+then updated on a regular basis.
 
-# ruby script/driver -h <hostname> init
+## To deploy:
 
-# Now manually set the database to UTF-8:
+   stackato push prezbuzz
 
-# mysql `stackato service-conn prezbuzz`
+       Bind a Mysql service
 
-> ALTER TABLE tweets CONVERT TO CHARACTER SET utf8 collate utf8_unicode_ci; 
-> quit
+## To initialize:
 
-# ruby script/driver -h <hostname> -v update
+    ruby script/driver -h <hostname> init
+    # Now manually set the database to UTF-8:
+    mysql `stackato service-conn prezbuzz`
+    > ALTER TABLE tweets CONVERT TO CHARACTER SET utf8 collate utf8_unicode_ci;
+    > quit
 
-The "-v" is to make it chatty.
+## To update:
+
+    ruby script/driver -h <hostname> update
+
+This is best run as part of a cron job once every hour or two.
+
+
+## Test the app in a browser:
+
+<http://prezbuzz.stackato.activestate.com/>
 

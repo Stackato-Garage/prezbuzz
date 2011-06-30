@@ -1,3 +1,6 @@
+# Copyright (c) 2011 ActiveState Software Inc.
+# See the file LICENSE.txt for licensing information.
+
 require 'net/http'
 require 'uri'
 require 'cgi'

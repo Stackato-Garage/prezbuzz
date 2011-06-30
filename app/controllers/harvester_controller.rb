@@ -1,3 +1,6 @@
+# Copyright (c) 2011 ActiveState Software Inc.
+# See the file LICENSE.txt for licensing information.
+
 class HarvesterController < ApplicationController
   
   Candidates =  [["Barack<br>Obama",  "3366CC"],
@@ -230,8 +233,9 @@ class HarvesterController < ApplicationController
         end
         parsedTime = Time.gm(*rawCreationTime_a)
       rescue
-        @log.debug("Error parsing date: #{$!}, rawCreationTime:#{rawCreationTime}, result:#{result}")
-        next
+        msg = "Error parsing date: #{$!}, rawCreationTime:#{rawCreationTime}"
+        @log.debug(msg)
+        return {:status => 1, :reject => msg}
       end
       $stderr.puts("parsedTime:#{parsedTime}, lastStopTime:#{lastStopTime}, test:#{parsedTime < lastStopTime}")
       if parsedTime < lastStopTime
