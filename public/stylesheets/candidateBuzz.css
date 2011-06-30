@@ -1,0 +1,145 @@
+/*
+ * Copyright (c) 2011 ActiveState Software Inc.
+ * See the file LICENSE.txt for licensing information.
+ */
+html { overflow: auto; }
+
+html, body {
+     margin: 0;
+     padding: 0;
+}
+
+body { margin: 10px;
+    font-family: Helvetica, Arial, sans-serif;
+    overflow: auto;
+}
+
+
+#visualization iframe {
+     border: 1px solid #aaa;
+     border-color: blue;
+}
+
+/*#visualization-wrapper {
+     position: relative;
+     height: 100%;
+}*/
+
+#stuff-container {
+     float: left;
+     width: 100%;
+     background: #amber;
+}
+
+#tweetDump {
+     clear: left;
+     float: left;
+     width: 45%;
+     padding: 20px 0;
+     margin: 0 0 0 4%;
+     display: inline;
+     
+     border: 1px solid #aaa;
+     font-size: smaller;
+     overflow: auto;
+}
+
+#wordCloudDivWrapper {
+     float: right;
+     width: 500px; /* 45% */
+     height: 350px;
+     padding: 20% 0;
+     margin: 0 3% 0 0;
+     display: inline;
+     border: 1px solid green;
+}
+
+#wordCloudDiv {
+     /*width: 550px;*/
+     height: 350px;
+     border: 1px solid yellow;
+}
+
+#tweetDump p {
+     margin: 10px;
+}
+
+#tweetDump ul#tweetDump-list {
+     list-style: none;
+     padding: 0;
+     margin: 0;
+}
+
+#tweetDump ul#tweetDump-list li {
+     display: block;
+     border: 1px solid #ddd;
+     background: #eee;
+     margin: 5px;
+     padding: 4px;
+     font: 12px Helvetica, sans-serif;
+     text-decoration: none;
+     color: #444;
+}
+
+#tweetDump ul#tweetDump-list li a:hover {
+     background: white;
+     color: #555;
+}
+
+#tweetDump ul#tweetDump-list li span {
+     font-style: italic;
+     font-size: 11px;
+}
+
+/* The default is the tweetDump to show as per these styles 
+for map-wrapper, the tweetDump, and the show/hide links */
+#visualization-wrapper { margin-right: 300px; }
+
+#tweetDump p {
+    font-size: smaller;
+}
+
+div.tweetContainer {
+    position: relative;
+}
+
+div.tweetUserImageContainer {
+    display: block;
+    float: left;
+    margin-right: 3px;
+}
+
+div.tweetContents {
+    display: block;
+    /*float: right;*/
+    position: absolute;
+    left: 400px;
+    top: 0px;
+}
+
+div.tweetUserNameContainer {
+    display: block;
+    top: 0;
+}
+
+div.tweetPayloadContainer {
+    display: block;
+}
+    
+
+#alert {
+     position: absolute;
+     top: 50%;
+     left: 0;
+     width: 100%;
+     text-align: center;   
+     display: none;
+}
+
+#alert p {
+     width: 150px;
+     margin: 0 auto 0 auto;
+     padding: 10px;
+     background: white;
+     border: 1px solid #aaa;
+}

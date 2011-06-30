@@ -1,0 +1,20 @@
+<h1>Editing tweet</h1>
+
+<% form_for(@tweet) do |f| %>
+  <%= f.error_messages %>
+
+  <p>
+    <%= f.label :text %><br />
+    <%= f.text_field :text %>
+  </p>
+  <p>
+    <%= f.label :tweetId %><br />
+    <%= f.text_field :tweetId %>
+  </p>
+  <p>
+    <%= f.submit 'Update' %>
+  </p>
+<% end %>
+
+<%= link_to 'Show', @tweet %> |
+<%= link_to 'Back', tweets_path %>

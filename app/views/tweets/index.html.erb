@@ -1,0 +1,19 @@
+<!--
+<h1>Listing tweets</h1>
+<table>
+  < % @intervalInfo.each do |infoBlock|
+  $stderr.puts "******** infoBlock: #{infoBlock}"
+    startDate = infoBlock[:startDate]
+    num_tweets_by_candidate = infoBlock[:num_tweets_by_candidate]
+    %>
+    <tr><th>Time</th><th>Candidate</th><th>Tweet Count</th></tr>
+    <tr><td>< %= startDate.to_time.localtime.strftime(@formatTimes[0]) %></td><td>&nbsp;</td><td>&nbsp;</td></tr>
+    < % @formatTimes.shift if @formatTimes.size > 1 %>
+    < % @candidates.each do |candidate| %>
+      <tr><td>&nbsp;</td><td >< %= "#{h(candidate.firstName)} #{h(candidate.lastName)}" -%></td>
+        <td>< %= num_tweets_by_candidate[candidate] %></td></tr>
+    < % end %>
+  < % end %>
+</table>
+<br />
+-->
