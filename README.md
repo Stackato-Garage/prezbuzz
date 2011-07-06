@@ -48,6 +48,32 @@ Initialize the database:
 
     rake db:migrate
     
+If you get this error message:
+
+    (in /home/ericp/lab/rails/rails3/prezbuzz-work/stackato-samples/ruby/rails3-prezbuzz)
+    rake aborted!
+    uninitialized constant Rake::DSL
+    
+install a newer rake:
+
+    gem install rake -v=0.9.2
+    
+Now when you run `rake db:migrate`, you should see this warning:
+
+    WARNING: Global access to Rake DSL methods is deprecated.  Please include
+        ...  Rake::DSL into classes and modules which use the Rake DSL methods.
+    WARNING: DSL method Prezbuzz::Application#task called at /home/ericp/opt/ruby-1.9.2-p136/lib/ruby/gems/1.9.1/gems/railties-3.0.0/lib/rails/application.rb:214:in
+
+followed by this expected output:
+
+    ==  CreateTweets: migrating ===================================================
+    -- create_table(:tweets)
+       -> 0.0017s
+    -- add_index(:tweets, :publishedAt)
+       -> 0.0006s
+    ==  CreateTweets: migrated (0.0027s) ==========================================
+    ...
+    
 Start the server:
 
     rails server webrick
