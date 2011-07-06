@@ -25,7 +25,7 @@ class HarvesterController < ApplicationController
   def initApp
     Candidate.delete(:all)
     if Meta.count == 0
-      Meta.create(:processTime => (Time.now - 6.hours).utc)
+      Meta.create(:processTime => (Time.now - 1.day).utc)
       self.reload(false)
       self.stopWords(false)
     end
@@ -227,7 +227,7 @@ class HarvesterController < ApplicationController
       rawCreationTime=params['created_at']
       begin
         if $is_19
-          rawCreationTime_a = Date::parse(rawCreationTime).to_time.utc.to_a
+          rawCreationTime_a = DateTime::parse(rawCreationTime).to_time.utc.to_a
         else
           rawCreationTime_a = ParseDate::parsedate(rawCreationTime)
         end
