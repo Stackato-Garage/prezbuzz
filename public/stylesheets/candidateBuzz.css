@@ -1,145 +1,463 @@
-/*
- * Copyright (c) 2011 ActiveState Software Inc.
- * See the file LICENSE.txt for licensing information.
- */
-html { overflow: auto; }
-
-html, body {
+body {
      margin: 0;
      padding: 0;
+     background-image: url(/images/hex.png);
+     background-color: #333;
 }
-
-body { margin: 10px;
-    font-family: Helvetica, Arial, sans-serif;
-    overflow: auto;
-}
-
-
-#visualization iframe {
-     border: 1px solid #aaa;
-     border-color: blue;
-}
-
-/*#visualization-wrapper {
-     position: relative;
-     height: 100%;
-}*/
-
-#stuff-container {
-     float: left;
+div#buzz_content {
      width: 100%;
-     background: #amber;
 }
-
-#tweetDump {
-     clear: left;
-     float: left;
-     width: 45%;
-     padding: 20px 0;
-     margin: 0 0 0 4%;
-     display: inline;
-     
-     border: 1px solid #aaa;
-     font-size: smaller;
-     overflow: auto;
+div#buzz_title {
+     background-color: #000;
 }
-
-#wordCloudDivWrapper {
+div#buzz_title .container {
+     width: 960px;
+     margin: 0 auto;
+}
+div#buzz_title .container #buzz_social {
      float: right;
-     width: 500px; /* 45% */
-     height: 350px;
-     padding: 20% 0;
-     margin: 0 3% 0 0;
-     display: inline;
-     border: 1px solid green;
+     color: #fff;
+     vertical-align: baseline;
 }
-
-#wordCloudDiv {
-     /*width: 550px;*/
-     height: 350px;
-     border: 1px solid yellow;
-}
-
-#tweetDump p {
-     margin: 10px;
-}
-
-#tweetDump ul#tweetDump-list {
-     list-style: none;
-     padding: 0;
+div#buzz_title .container h1 {
+     text-shadow: 0px 3px 3px #999;
+     color: #eee;
+     font-size: 65px;
+     font-family: 'Paytone One', sans-serif;
      margin: 0;
 }
-
-#tweetDump ul#tweetDump-list li {
-     display: block;
-     border: 1px solid #ddd;
-     background: #eee;
-     margin: 5px;
-     padding: 4px;
-     font: 12px Helvetica, sans-serif;
+div#buzz_chart {
+     width: 960px;
+     margin: 0 auto;
+     padding: 10px 20px;
+     background-color: #fff;
+     overflow: hidden;
+}
+div#buzz_chart #visualization {
+     height: 330px;
+     overflow: hidden;
+}
+div#buzz_chart iframe {
+     position: relative;
+     top: -25px;
+     left: -95px;
+}
+.buzz_button_link {
+     float: right;
+     background-color: #666;
+     font-size: 25px;
+     font-family: 'Paytone One', sans-serif;
+     line-height: 25px;
+     padding: 5px 15px;
+     -moz-border-radius: 20px;
+     color: #eee;
+     margin-left: 10px;
+     margin-top: 35px;
+}
+.buzz_button_link:hover {
+     background-color: #999;
+     color: #fff;
+}
+.buzz_button_link[disabled] {
+     opacity: .5;
+}
+.buzz_button_link:hover[disabled] {
+     background-color: #666;
+     color: #eee;
+}
+div.buzz_button_link a {
      text-decoration: none;
-     color: #444;
+     color: #fff;
+}
+#button_time_back {
+     float: left;
+     margin-left: 50px;
+}
+#button_time_forward {
+     margin-right: 150px;
+}
+#button_time_back,
+#button_time_forward {
+     margin-top: 0;
+     font-family: Helvetica, sans-serif;
+     font-weight: bold;
+     font-size: 14px;
+     line-height: 16px;
+}
+a#buzz_tweet {
+     background-color: #45BADF;
+     padding: 0 10px;
+}
+a#buzz_tweet:hover {
+     background-color: #53D4FF;
+}
+div#buzz_details {
+     clear: both;
+     width: 960px;
+     margin: auto;
+     background-color: #fff;
+     padding: 10px 20px 60px;
+}
+div#buzz_details:after {
+     content: ".";
+     display: block;
+     height: 0;
+     clear: both;
+     visibility: hidden;
+}
+div#word_cloud {
+     height: 350px;
+     width: 480px;
+     position: relative;
+     float: right;
+}
+div#buzz_candidate {
+     background-color: #fff;
+     color: #fff;
+     font-size: 28px;
+     font-family: Helvetica, sans-serif;
+     width: 960px;
+     padding: 10px 20px;
+     margin: auto;
+     vertical-align: baseline;
+     text-shadow: 0px 2px 2px #000;
+}
+div#buzz_candidate:after {
+     content: ".";
+     display: block;
+     height: 0;
+     clear: both;
+     visibility: hidden;
+}
+div#buzz_candidate #buzz_candidate_details {
+     margin-left: 20px;
+     padding-top: 10px;
+}
+     
+#buzz_candidate #buzz_candidate_count {
+     float: right;
+     margin-top: 20px;
+     font-size: 36px;
+}
+     
+div#buzz_candidate img {
+     float: left;
+     -moz-border-radius: 5px;
+     margin: 10px 10px 10px 0;
+     -moz-box-shadow: 0px 2px 2px #000;
+}
+div#buzz_candidate strong {
+     display: inline-block;
+     margin: 6px 0;
+     font-size: 60px;
+}
+     
+div#buzz_candidate span#time {
+     font-size: 24px;
+}
+     
+div#buzz_candidate.perry {
+     border-color: #FFF200;
 }
 
-#tweetDump ul#tweetDump-list li a:hover {
-     background: white;
-     color: #555;
+/* Candidate Colors */
+     
+body.Obama div#buzz_candidate {
+     background-color: #3366CC;
+}
+body.Obama #buzz_details {
+     background: #FFFFFF;
+     background: -moz-linear-gradient(top, #3366CC 0%, #000 100%);
+     background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#3366CC), color-stop(100%,#000 ));
+     background: -webkit-linear-gradient(top, #3366CC 0%,#000  100%);
+     background: -o-linear-gradient(top, #3366CC 0%,#000 100%);
+     background: -ms-linear-gradient(top, #3366CC 0%,#000  100%);
+     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#3366CC', endColorstr='#000 ',GradientType=0 );
+     background: linear-gradient(top, #3366CC 0%,#000  100%);
 }
 
-#tweetDump ul#tweetDump-list li span {
-     font-style: italic;
-     font-size: 11px;
+body.Bachmann div#buzz_candidate {
+     background-color: #DC3912;
+}
+body.Bachmann #buzz_details {
+     background: #FFFFFF;
+     background: -moz-linear-gradient(top, #DC3912 0%, #000 100%);
+     background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#DC3912), color-stop(100%,#000 ));
+     background: -webkit-linear-gradient(top, #DC3912 0%,#000  100%);
+     background: -o-linear-gradient(top, #DC3912 0%,#000 100%);
+     background: -ms-linear-gradient(top, #DC3912 0%,#000  100%);
+     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#DC3912', endColorstr='#000 ',GradientType=0 );
+     background: linear-gradient(top, #DC3912 0%,#000  100%);
 }
 
-/* The default is the tweetDump to show as per these styles 
-for map-wrapper, the tweetDump, and the show/hide links */
-#visualization-wrapper { margin-right: 300px; }
-
-#tweetDump p {
-    font-size: smaller;
+body.Cain div#buzz_candidate {
+     background-color: #FF9900;
+}
+body.Cain #buzz_details {
+     background: #FFFFFF;
+     background: -moz-linear-gradient(top, #FF9900 0%, #000 100%);
+     background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#FF9900), color-stop(100%,#000 ));
+     background: -webkit-linear-gradient(top, #FF9900 0%,#000  100%);
+     background: -o-linear-gradient(top, #FF9900 0%,#000 100%);
+     background: -ms-linear-gradient(top, #FF9900 0%,#000  100%);
+     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#FF9900', endColorstr='#000 ',GradientType=0 );
+     background: linear-gradient(top, #FF9900 0%,#000  100%);
 }
 
-div.tweetContainer {
-    position: relative;
+body.Gingrich div#buzz_candidate {
+     background-color: #109618;
+}
+body.Gingrich #buzz_details {
+     background: #FFFFFF;
+     background: -moz-linear-gradient(top, #109618 0%, #000 100%);
+     background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#109618), color-stop(100%,#000 ));
+     background: -webkit-linear-gradient(top, #109618 0%,#000  100%);
+     background: -o-linear-gradient(top, #109618 0%,#000 100%);
+     background: -ms-linear-gradient(top, #109618 0%,#000  100%);
+     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#109618', endColorstr='#000 ',GradientType=0 );
+     background: linear-gradient(top, #109618 0%,#000  100%);
 }
 
-div.tweetUserImageContainer {
-    display: block;
-    float: left;
-    margin-right: 3px;
+body.Huntsman div#buzz_candidate {
+     background-color: #990099;
+}
+body.Huntsman #buzz_details {
+     background: #FFFFFF;
+     background: -moz-linear-gradient(top, #990099 0%, #000 100%);
+     background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#990099), color-stop(100%,#000 ));
+     background: -webkit-linear-gradient(top, #990099 0%,#000  100%);
+     background: -o-linear-gradient(top, #990099 0%,#000 100%);
+     background: -ms-linear-gradient(top, #990099 0%,#000  100%);
+     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#990099', endColorstr='#000 ',GradientType=0 );
+     background: linear-gradient(top, #990099 0%,#000  100%);
 }
 
-div.tweetContents {
-    display: block;
-    /*float: right;*/
-    position: absolute;
-    left: 400px;
-    top: 0px;
+body.Johnson div#buzz_candidate {
+     background-color: #0099C6;
+}
+body.Johnson #buzz_details {
+     background: #FFFFFF;
+     background: -moz-linear-gradient(top, #0099C6 0%, #000 100%);
+     background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#0099C6), color-stop(100%,#000 ));
+     background: -webkit-linear-gradient(top, #0099C6 0%,#000  100%);
+     background: -o-linear-gradient(top, #0099C6 0%,#000 100%);
+     background: -ms-linear-gradient(top, #0099C6 0%,#000  100%);
+     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#0099C6', endColorstr='#000 ',GradientType=0 );
+     background: linear-gradient(top, #0099C6 0%,#000  100%);
 }
 
-div.tweetUserNameContainer {
-    display: block;
-    top: 0;
+body.Palin div#buzz_candidate {
+     background-color: #FF2288;
+}
+body.Palin #buzz_details {
+     background: #FFFFFF;
+     background: -moz-linear-gradient(top, #FF2288 0%, #000 100%);
+     background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#FF2288), color-stop(100%,#000 ));
+     background: -webkit-linear-gradient(top, #FF2288 0%,#000  100%);
+     background: -o-linear-gradient(top, #FF2288 0%,#000 100%);
+     background: -ms-linear-gradient(top, #FF2288 0%,#000  100%);
+     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#FF2288', endColorstr='#000 ',GradientType=0 );
+     background: linear-gradient(top, #FF2288 0%,#000  100%);
 }
 
-div.tweetPayloadContainer {
-    display: block;
+body.Paul div#buzz_candidate {
+     background-color: #66AA00;
+}
+body.Paul #buzz_details {
+     background: #FFFFFF;
+     background: -moz-linear-gradient(top, #66AA00 0%, #000 100%);
+     background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#66AA00), color-stop(100%,#000 ));
+     background: -webkit-linear-gradient(top, #66AA00 0%,#000  100%);
+     background: -o-linear-gradient(top, #66AA00 0%,#000 100%);
+     background: -ms-linear-gradient(top, #66AA00 0%,#000  100%);
+     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#66AA00', endColorstr='#000 ',GradientType=0 );
+     background: linear-gradient(top, #66AA00 0%,#000  100%);
 }
     
+body.Romney div#buzz_candidate {
+     background-color: #316395;
+}
+body.Romney #buzz_details {
+     background: #FFFFFF;
+     background: -moz-linear-gradient(top, #316395 0%, #000 100%);
+     background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#316395), color-stop(100%,#000 ));
+     background: -webkit-linear-gradient(top, #316395 0%,#000  100%);
+     background: -o-linear-gradient(top, #316395 0%,#000 100%);
+     background: -ms-linear-gradient(top, #316395 0%,#000  100%);
+     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#316395', endColorstr='#000 ',GradientType=0 );
+     background: linear-gradient(top, #316395 0%,#000  100%);
+}
 
-#alert {
+body.Pawlenty div#buzz_candidate {
+     background-color: #B82E2E;
+}
+body.Pawlenty #buzz_details {
+     background: #FFFFFF;
+     background: -moz-linear-gradient(top, #B82E2E 0%, #000 100%);
+     background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#B82E2E), color-stop(100%,#000 ));
+     background: -webkit-linear-gradient(top, #B82E2E 0%,#000  100%);
+     background: -o-linear-gradient(top, #B82E2E 0%,#000 100%);
+     background: -ms-linear-gradient(top, #B82E2E 0%,#000  100%);
+     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#B82E2E', endColorstr='#000 ',GradientType=0 );
+     background: linear-gradient(top, #B82E2E 0%,#000  100%);
+}
+
+body.Santorum div#buzz_candidate {
+     background-color: #775500;
+}
+body.Santorum #buzz_details {
+     background: #FFFFFF;
+     background: -moz-linear-gradient(top, #775500 0%, #000 100%);
+     background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#775500), color-stop(100%,#000 ));
+     background: -webkit-linear-gradient(top, #775500 0%,#000  100%);
+     background: -o-linear-gradient(top, #775500 0%,#000 100%);
+     background: -ms-linear-gradient(top, #775500 0%,#000  100%);
+     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#775500', endColorstr='#000 ',GradientType=0 );
+     background: linear-gradient(top, #775500 0%,#000  100%);
+}
+    
+body.Perry div#buzz_candidate {
+     background-color: #22AA99;
+} 
+body.Perry #buzz_details {
+     background: #FFFFFF;
+     background: -moz-linear-gradient(top, #22AA99 0%, #000 100%);
+     background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#22AA99), color-stop(100%,#000 ));
+     background: -webkit-linear-gradient(top, #22AA99 0%,#000  100%);
+     background: -o-linear-gradient(top, #22AA99 0%,#000 100%);
+     background: -ms-linear-gradient(top, #22AA99 0%,#000  100%);
+     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#22AA99', endColorstr='#000 ',GradientType=0 );
+     background: linear-gradient(top, #22AA99 0%,#000  100%);
+}
+
+body.Christie div#buzz_candidate {
+     background-color: #FFEE11;
+}
+body.Christie #buzz_details {
+     background: #FFFFFF;
+     background: -moz-linear-gradient(top, #FFEE11 0%, #000 100%);
+     background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#FFEE11), color-stop(100%,#000 ));
+     background: -webkit-linear-gradient(top, #FFEE11 0%,#000  100%);
+     background: -o-linear-gradient(top, #FFEE11 0%,#000 100%);
+     background: -ms-linear-gradient(top, #FFEE11 0%,#000  100%);
+     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#FFEE11', endColorstr='#000 ',GradientType=0 );
+     background: linear-gradient(top, #FFEE11 0%,#000  100%);
+}
+     
+div#buzz_tweets {
+     width: 470px;
+     padding: 0;
+     float: left;
+}
+     
+div#word_cloud {
+     background-color: #fff;
+     -moz-border-radius: 5px;
+     -moz-box-shadow: 0px 1px 3px #000;
+     width: 470px;
+}
+     
+ul#tweetDump-list {
+     list-style: none;
+     padding: 0;
+}
+#holder {
+     padding-bottom: 60px;
+     -moz-box-shadow: 0px 1px 3px #000;
+     height: 375px;
+}
+#holder.loading {
+     padding-bottom: 0;
+     height: 435px;
+}
+#holder.loading:after {
+     content: "Loading...";
+     display: block;
      position: absolute;
-     top: 50%;
+     width: 470px;
+     height: 435px;
+     -moz-border-radius: 5px;
+     background-color: #424242;
+     color: #fff;
+     font-size: 36px;
+     text-align: center;
+     font-family: Helvetica, sans-serif;
+     line-height: 150px;
+     top: 0;
      left: 0;
-     width: 100%;
-     text-align: center;   
+}
+#holder.loading li {
+     visibility: hidden;
+}
+#holder li hr {
      display: none;
 }
 
-#alert p {
-     width: 150px;
-     margin: 0 auto 0 auto;
-     padding: 10px;
-     background: white;
-     border: 1px solid #aaa;
+#buzz_tweets #twitter_controls {
+     position: relative;
+     bottom: 60px;
+     -moz-border-radius: 0 0 5px 5px;
+}
+
+.tweetContainer {
+     width: 410px;
+}
+
+.tweetUserImageContainer {
+     float: left;
+}
+     
+.tweetUserImageContainer img {
+     -moz-border-radius: 5px;
+     -moz-box-shadow: 0px 1px 3px #000;
+}
+     
+.tweetContentsContainer {
+     margin-left: 60px;
+     font-family: Helvetica;
+     font-size: 14px;
+}
+.tweetUserNameContainer {
+     margin-bottom: 10px;
+}
+     
+.swShowPage {
+     display: none;
+}
+     
+.swFB.buzz_button_link {
+     margin-top: 10px;
+     font-family: Helvetica;
+     font-size: 40px;
+     height: 20px;
+     line-height: 24px;
+     background-color: #000;
+}
+.swFB.buzz_button_link[disabled] {
+     background-color: #666;
+     opacity: .5;
+}
+#button_back {
+     float: left !important;
+}
+     
+#button_forward {
+     float: right !important;
+     margin-right: 10px;
+}
+     
+#twitter_attr {
+     clear: right;
+}
+     
+#twitterHeader {
+     font-family: Helvetica, sans-serif;
+     font-size: 19px;
+     font-weight: bold;
+     text-align: center;
+     padding: 20px;
+     color: #999;
+}
+#twitterHeader img {
+     margin-bottom: -2.5px;
 }

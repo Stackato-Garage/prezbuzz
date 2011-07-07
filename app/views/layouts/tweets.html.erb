@@ -8,8 +8,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
   <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
-  <title>CandidateBuzz <%= controller.action_name %></title>
-  <%= stylesheet_link_tag 'scaffold' %>
+  <title>CandidateBuzz</title>
   <% if defined? @maxSize %>
     <script type="text/javascript" src="http://code.jquery.com/jquery-1.6.1.min.js"></script>
     <script type="text/javascript" src="http://www.google.com/jsapi"></script>
@@ -18,6 +17,8 @@
     </script>
     <%= javascript_include_tag 'jqcloud-0.1.8.js' %>
     <%= stylesheet_link_tag 'jqcloud' %>
+    <%= javascript_include_tag 'sweetpages' %>
+    <%= stylesheet_link_tag 'sweetpages' %>
     <%= javascript_include_tag 'candidateBuzz' %>
     <%= stylesheet_link_tag 'candidateBuzz' %>
     <script type="text/javascript" >
@@ -27,6 +28,7 @@
       function drawVisualization() {
         intervalCandidatePosnTweetCounts = [];
         candidateNames = [];
+        candidateAvatars = [];
         isoStartDates = [];
         gEndDate = "<%= @isoFinalEndDate %>";
         gNumRows = <%= @intervalInfo.size %>;
@@ -40,9 +42,11 @@
         clickColumnToDataColumn = [];
         <% @candidates.each do |candidate| %>
           <% if ! @candidates_to_drop[candidate.id]  %>
+            lastName = "<%= "#{candidate.lastName}" %>";
             fullName = "<%= "#{candidate.firstName} #{candidate.lastName}"%>";
             data.addColumn('number', fullName)
             candidateNames.push(fullName);
+            candidateAvatars.push("/images/" + lastName + ".jpg");
             colors_for_candidates.push("#<%=candidate.color%>")
             clickColumnToDataColumn[clickCol] = dataCol;
             clickCol += 1
@@ -70,11 +74,11 @@
         // Create and draw the visualization.
         var chart = new google.visualization.ColumnChart(document.getElementById('visualization'));
         chart.draw(data, {curveType: "function",
-                        enableEvents: true,
+                          enableEvents: true,
                           title: "Tweets per hour",
                           colors: colors_for_candidates,
-                        width: 1000, height: 400,
-                        vAxis: {maxValue: <%= @maxSize %>}}
+                          width: 1050, height: 400,
+                          vAxis: {maxValue: <%= @maxSize %>}}
                 );
         var pluralizeWord = function(word, count) {
           if (count == 1) return word;
@@ -92,7 +96,12 @@
           var twitterLink = document.getElementById('twitterLink');
           var selectedColumn = document.getElementById('selectedColumn');
           twitterLink.style.display = "block";
-          selectedColumn.innerHTML = "Column: " + dataColumn + ": " + candidateNames[clickColumn];
+          console.log("Column: " + dataColumn + ": " + candidateNames[clickColumn]);
+          var candidateName = candidateNames[clickColumn];
+          $("body").attr("class", candidateName);
+          
+          loadCandidateContent(clickColumn, row);
+          
           var asinTweetHRef = document.getElementById('asinTweetHRef');
           
           var innerHTML = ("Show tweets for "
@@ -122,6 +131,51 @@
         };
         google.visualization.events.addListener(chart, 'select', mouseEventHandler);
         initSidebar();
+        
+         $(document).ready(function() {
+          console.log("document ready");
+          
+          try {
+            console.log("attempting to get tweets on page load");
+            loadCandidateContent(0, 3);
+            getTweets(2, 0); // load Barack Obama's most recent tweets
+          } catch(ex) {
+            alert("prob in getTweets: " + ex)
+          }
+        });
+      }
+      
+      var loadCandidateContent = function(clickColumn, row) {
+        console.log("Loading Candidate " + candidateNames[clickColumn]);
+        var candidateName = candidateNames[clickColumn];
+        var lastName = candidateName.split(/[\s,]+/)[1];
+        
+        console.log('last name: ' + lastName);
+        // set body class
+        $("body").attr("class", candidateName);
+        
+        // update candidate bar
+        var candidateImg = '<img src="/images/' + lastName + '.jpg" >'
+        console.log(candidateImg);
+        $('div#buzz_candidate_img').html(candidateImg);
+        
+        var mmToMonth = new Array("Jan", "Feb", "Mar", "Apr", "May", "Jun", "July", "Aug", "Sep", "Oct", "Nov", "Dec");
+
+        var showLocalDate = function(timestamp)
+        {
+          var dt = new Date(timestamp);
+          var mm = mmToMonth[dt.getMonth()];
+          var hour = dt.getHours();
+          var ap = "am";
+          if (hour > 12) {
+            hour = hour - 12;
+            ap = "pm";
+          }
+          return mm + " " + dt.getDate() + ", " + dt.getFullYear() + " @ " + hour + ":00 " + ap;
+        }
+        $('div#buzz_candidate span#tweet_count').html(intervalCandidatePosnTweetCounts[row][clickColumn]);
+        $('div#buzz_candidate strong').html(candidateName);
+        $('div#buzz_candidate span#time').html("on " + showLocalDate(isoStartDates[row]));
       }
 
       google.setOnLoadCallback(drawVisualization);
@@ -189,14 +243,14 @@
       var getTweets = function(row, dataColumn) {
         var tweets_url = "<%= url_for :controller => 'tweets', :action => 'getTweets'  %>";
         var wordCloud_url = "<%= url_for :controller => 'tweets', :action => 'getWordCloud'  %>";
-	var startDate, endDate;
-	if (row) {
-	  startDate = isoStartDates[row];
-          endDate = getEndDate(row);
-	} else {
-	  startDate = isoStartDates[0];
-          endDate = gEndDate;
-	}
+        var startDate, endDate;
+        if (row) {
+          startDate = isoStartDates[row];
+              endDate = getEndDate(row);
+        } else {
+          startDate = isoStartDates[0];
+              endDate = gEndDate;
+        }
         var localCallback = function(json) {
           getTweetCallback(json);
           setTimeout(function() {
@@ -216,49 +270,89 @@
       // ]]>
     </script>
   <% end %>
+  <link href='http://fonts.googleapis.com/css?family=Paytone+One&subset=latin&v2' rel='stylesheet' type='text/css'>
 </head>
 <body>
-<div style="height: 149px; overflow: hidden; position: fixed;
-            top: 0; left: 0; z-index:3;">
-    <a href="http://www.activestate.com/cloud"><img  alt="Powered by Stackato"
-       src="http://templates.activestate.com/images/stackato-ribbon/top-left.png"></a>
-</div>
-
-<p style="color: green"><%= notice %></p>
-
-<%= yield %>
-<% if defined? @maxSize %>
-  <div id="visualization" style="width: 500px; height: 400px;"></div>
-  <% if @hasLinkInfo[:prevLinks] %>
-    <span id="olderLinkWrapper" hasLink="1"><%= link_to "Older", {:controller => "tweets", :action => "index", :startDateISO => @linkInfo[:prevLinks][:startDate],
-                                     :endDateISO   => @linkInfo[:prevLinks][:endDate]} %></span>
-  <% else %>
-    <span id="olderLinkWrapper">[No earlier data]</span>
-  <% end %> |
-  <% if @hasLinkInfo[:nextLinks] %>
-    <span id="newerLinkWrapper" hasLink="1" hasLink="0"><%= link_to "Newer", :controller => "tweets", :action => "index", :startDateISO => @linkInfo[:nextLinks][:startDate],
-                                     :endDateISO   => @linkInfo[:nextLinks][:endDate] %></span>
-  <% else %>
-    <span id="newerLinkWrapper">[No later data]</span>
-  <% end %>
-  <div id="selectedColumn" style="display: none;"></div>
-  <div id="twitterLink" style="display: none;">
-    Show tweets for <span id="asinTweetHRef"></span>
+  <!-- Stackato corner-banner -->
+  <div style="height: 149px; overflow: hidden; position: fixed; bottom: 0; left:0;">
+      <a href="http://www.activestate.com/cloud"><img  alt="Powered by Stackato"
+      src="http://templates.activestate.com/images/stackato-ribbon/bottom-left.png"></a>
   </div>
-  <div id="stuff-container" >
-    <div id="tweetDump" >
-        <p id='twitterHeader'>Content from </span>
-        <%= image_tag "logo_twitter_withbird_h24xw129_allblue.png" %>
-        </p>
-        <ul id="tweetDump-list">
-        </ul>
+
+  <div id="buzz_content">
+    <div id="buzz_title">
+        <div class="container">
+            <a id="buzz_tweet" class="buzz_button_link"><img src="/images/twitter_newbird_white.png" height=35px alt="Twitter" /></a>
+            <a id="buzz_help" class="buzz_button_link">?</a>
+            <h1>Candidate Buzz</h1>
+        </div>
     </div>
-    <div id="wordCloudDivWrapper" >
-      <!--Word cloud will go here-->
-      <div id="wordCloudDiv" >
+
+<!--     <p style="color: green"><%= notice %></p> -->
+    <div id="buzz_chart">
+      <%= yield %>
+  
+    <% if defined? @maxSize %>
+      <div id="visualization"></div>
+      <% if @hasLinkInfo[:prevLinks] %>
+        <div id="button_time_back" class="buzz_button_link" hasLink="1"><%= link_to "&laquo; Older".html_safe, {:controller => "tweets", :action => "index", :startDateISO => @linkInfo[:prevLinks][:startDate],
+                                         :endDateISO   => @linkInfo[:prevLinks][:endDate]} %></div>
+      <% end %>
+      <% if @hasLinkInfo[:nextLinks] %>
+        <div id="button_time_forward" class="buzz_button_link" hasLink="1" hasLink="0"><%= link_to "Newer &raquo;".html_safe, :controller => "tweets", :action => "index", :startDateISO => @linkInfo[:nextLinks][:startDate],
+                                         :endDateISO   => @linkInfo[:nextLinks][:endDate] %></div>
+      <% end %>
+    </div>
+    <div id="buzz_candidate">
+
+        <div id="buzz_candidate_img">
+          
+        </div>
+            
+        <div id="buzz_candidate_details">
+          <span id="tweet_count"></span> tweets about<br />
+            <strong></strong>
+            <br />
+            <span id="time"></span>
+        </div>
+            
+    </div>
+    <div id="buzz_details">
+      <div id="buzz_tweets">
+        <ul id="holder">
+          
+        </ul>
+        <div id="twitter_controls">
+          <a class="swFB buzz_button_link" id="button_back" value="Back" pgoffset="-1">&laquo;</a>
+          <a class="swFB buzz_button_link" id="button_forward" value="Forward" pgoffset="1">&raquo;</a>
+        </div>
+      </div>
+      <div id="word_cloud_wrapper" >
+        <!--Word cloud will go here-->
+        <div id="word_cloud" >
+        </div>
+      </div>
+      <div id="twitter_attr">
+          <p id="twitterHeader">Content from 
+          <img src="/images/twitter_logo.png" alt="twitter" />
+          </p>
       </div>
     </div>
+
+      <div id="selectedColumn" style="display: none;"></div>
+      <div id="twitterLink" style="display: none;">
+        Show tweets for <span id="asinTweetHRef"></span>
+      </div>
+      <div id="stuff-container" style="display: none;">
+        <div id="tweetDump" style="display: none;">
+            <p id='twitterHeader'>Content from </span>
+            <%= image_tag "logo_twitter_withbird_h24xw129_allblue.png" %>
+            </p>
+            
+        </div>
+        
+      </div>
+    <% end %>
   </div>
-<% end %>
 </body>
 </html>

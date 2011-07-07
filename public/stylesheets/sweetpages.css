@@ -1,0 +1,89 @@
+*{
+	/* Universal page reset */
+	margin:0;
+	padding:0;
+}
+
+#holder{
+	/* The unordered list that is to be split into pages */
+	width:470px;
+	overflow:hidden;
+	position:relative;
+	background-color: #fff;
+}
+
+.swControls{
+	position:absolute;
+	margin-top:10px;
+}
+
+#twitter_controls {
+	padding-bottom:10px;
+	background-color: #424242;
+    margin-top: 10px;
+}
+
+#twitter_controls:after {
+	content: ".";
+	display: block;
+	height: 0;
+	clear: both;
+	visibility: hidden;
+}
+
+a.swShowPage{
+
+	/* The links that initiate the page slide */
+
+	background-color:#444444;
+	float:left;
+	height:15px;
+	margin:4px 3px;
+	text-indent:-9999px;
+	width:15px;
+	/*border:1px solid #ccc;*/
+	
+	/* CSS3 rounded corners */
+	
+	-moz-border-radius:7px;
+	-webkit-border-radius:7px;
+	border-radius:7px;
+}
+
+a.swShowPage:hover,
+a.swShowPage.active{
+	background-color:#2993dd;
+	
+	/*	CSS3 inner shadow */
+	
+	-moz-box-shadow:0 0 7px #1e435d inset;
+	/*-webkit-box-shadow:0 0 7px #1e435d inset;*/
+	box-shadow:0 0 7px #1e435d inset;
+}
+
+#holder li{
+	background-color:#F4F4F4;
+	list-style:none outside none;
+	margin:10px 10px 0;
+	padding:20px;
+	float:left;
+
+	/* Regular CSS3 box shadows (not inset): */
+
+	-moz-box-shadow:0 0 6px #111111;
+	-webkit-box-shadow:0 0 6px #111111;
+	box-shadow:0 0 6px #111111;
+}
+
+#holder,
+#holder li{
+	/* Applying rouded corners to both the holder and the holder lis */
+	-moz-border-radius:8px;
+	-webkit-border-radius:8px;
+	border-radius:8px;
+}
+
+.clear{
+	/* This class clears the floated elements */
+	clear:both;
+}

@@ -275,13 +275,13 @@ class TweetsController < ApplicationController
     if startDateISO.nil? || endDateISO.nil?
       now = DateTime.now.utc
       endDate = DateTime.new(now.year, now.month, now.day, now.hour) + 1.hour
-      startDate = endDate - 6.hours
-      numIntervals = 6
+      startDate = endDate - 4.hours
+      numIntervals = 4
       intervalSize = 1.hour
     else
       startDate = DateTime.parse(startDateISO, true)
       endDate = DateTime.parse(endDateISO, true)
-      numIntervals = 6
+      numIntervals = 4
       intervalSize = (endDate.to_i - startDate.to_i).seconds
     end
     finalEndDate = endDate
@@ -360,13 +360,13 @@ class TweetsController < ApplicationController
     if startDateISO.nil? || endDateISO.nil?
       now = DateTime.now.utc
       endDate = DateTime.new(now.year, now.month, now.day, now.hour) + 1.hour
-      startDate = endDate - 6.hours
-      numIntervals = 6
+      startDate = endDate - 4.hours
+      numIntervals = 4
       intervalSize = 1.hour
     else
       startDate = DateTime.parse(startDateISO, true)
       endDate = DateTime.parse(endDateISO, true)
-      numIntervals = 6
+      numIntervals = 4
       intervalSize = ((endDate.to_time.to_i - startDate.to_time.to_i)/numIntervals).seconds.to_i
     end
     finalEndDate = endDate
