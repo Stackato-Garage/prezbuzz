@@ -46,6 +46,9 @@ Prezbuzz::Application.routes.draw do
   #     resources :products
   #   end
 
+  # EP -- Does this work???
+  get "stylesheets/rcss"
+
   # You can have the root of your site routed with "root"
   # just remember to delete public/index.html.
   # root :to => "welcome#index"

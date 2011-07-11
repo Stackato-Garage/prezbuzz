@@ -82,6 +82,11 @@ Change to another console, in the same directory, with
 the same environment, and initialize the database:
 
     ruby script/driver.rb -h localhost -p 3000 init
+
+If you've modified the list of candidates, or their colors, you'll need to
+rebuild the CSS file:
+
+    curl 'http://localhost:3000/stylesheets/rcss?rcss=candidateBuzz' > public/stylesheets/candidateBuzz.css
     
 Now populate the database:
 
@@ -102,6 +107,9 @@ magnitude slower than a networked database.
     # Now manually set the database to UTF-8:
     mysql `stackato service-conn prezbuzz`
     > ALTER TABLE tweets CONVERT TO CHARACTER SET utf8 collate utf8_unicode_ci;
+    > ALTER TABLE negative_words CONVERT TO CHARACTER SET utf8 collate utf8_unicode_ci;
+    > ALTER TABLE positive_words CONVERT TO CHARACTER SET utf8 collate utf8_unicode_ci;
+    > ALTER TABLE stop_words CONVERT TO CHARACTER SET utf8 collate utf8_unicode_ci;
     > quit
 
 ## To update:

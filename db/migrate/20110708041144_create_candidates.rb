@@ -4,7 +4,6 @@ class CreateCandidates < ActiveRecord::Migration
       t.string :firstName
       t.string :lastName
       t.string :color, :limit => 6, :default => "ffffff"
-      t.timestamps
     end
   end
 

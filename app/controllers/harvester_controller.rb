@@ -1,10 +1,7 @@
-# Copyright (c) 2011 ActiveState Software Inc.
-# See the file LICENSE.txt for licensing information.
-
 class HarvesterController < ApplicationController
   
   Candidates =  [["Barack<br>Obama",  "3366CC"],
-       ["Michele<br>Bachmann", "DC3912"],
+       ["Michele<br>Bachmann", "F02288"], # was DC3912q
        ["Herman<br>Cain", "FF9900"],
        ["Newt<br>Gingrich", "109618"],
        ["Jon<br>Huntsman", "990099"],
@@ -25,8 +22,9 @@ class HarvesterController < ApplicationController
   def initApp
     Candidate.delete(:all)
     if Meta.count == 0
-      Meta.create(:processTime => (Time.now - 1.day).utc)
+      Meta.create(:processTime => (Time.now - 6.hours).utc)
       self.reload(false)
+      self.loadSentimentWords
       self.stopWords(false)
     end
     render :text => Meta.find(:first).processTime.utc
@@ -48,6 +46,20 @@ class HarvesterController < ApplicationController
     end
     if doRender
       render :text => StopWord.count
+    end
+  end
+  
+  def loadSentimentWords
+    [["../../../db/sentiment/positive-words.txt", PositiveWord],
+     ["../../../db/sentiment/negative-words.txt", NegativeWord]].each do |relPath, cls|
+      File.open(File.expand_path(relPath, __FILE__), "r") do |fd|
+        fd.readlines.each do |wd|
+          if wd[0] == ';'
+            next
+          end
+          cls.create(:word => wd.chomp)
+        end
+      end
     end
   end
   
@@ -115,7 +127,11 @@ class HarvesterController < ApplicationController
   def getLastStopTime
     # Allow for some leeway -- it takes about an hour to run through all the tweets, so we
     # need to look further back.
-    render :text => (Meta.find(:first).processTime - 1.hour).to_i 
+    begin
+      render :text => (Meta.find(:first).processTime - 1.hour).to_i
+    rescue
+      render :text => ""
+    end
   end
   
   def getNumberOfCandidates
@@ -183,7 +199,6 @@ class HarvesterController < ApplicationController
   class TweetLoader
   
     
-    @@hashtagSplitter = /(?:\A|\W)#([\-\_\w]+)/
     @@url_base = 'http://search.twitter.com/search.json'
     def initialize
       @@_spammers = {
@@ -255,12 +270,39 @@ class HarvesterController < ApplicationController
       tweetId = params['id']
       candidate = Candidate.find(candidateID)
       # Did we already process this tweet?
-      currentTweet = Tweet.find_by_tweetId(tweetId)
+      currentTweet = Tweet.find_by_tweetId(tweetId) || DuplicateTweet.find_by_tweetId(tweetId)
       if currentTweet
         if verbose==VERBOSE_MAX
           @log.debug("Already saw tweet #{tweetId}")
         end
         return {:status => 1, :reject => "DUPLICATE_TWEET"}
+      end
+      text = params[:text]
+      tweetData = parseTweet(text)
+      $stderr.puts("stderr: rawText: #{tweetData[:textKernel]}")
+      @log.puts("@log: rawText: #{tweetData[:textKernel]}")
+      #a = {
+      #  :retweet => m[1],
+      #  :textKernel => m[2],
+      #  :trailingTagsAndLinks => m[3]
+      #}
+      
+      fourHoursAgo = parsedTime - 4.hours
+      olderTweet = Tweet.find(:first, :conditions => ["textKernel = ? and publishedAt >= ?",
+                                                      tweetData[:textKernel], fourHoursAgo],
+                              :order => "publishedAt DESC" )
+      if olderTweet
+        #XXXX todo: if we now have the actual underlying tweet, use that instead of the retweet
+        DuplicateTweet.create(:tweetId => tweetId, :orig_tweet_id => olderTweet.id)
+        return {:status => 1, :reject => "COPIED_TWEET"}
+      else
+        olderTweet = Tweet.find_by_textKernel(tweetData[:textKernel])
+        if olderTweet
+          $stderr.puts("Found an older tweet: parsedTime:#{parsedTime}, 4hrs ago:#{fourHoursAgo}, oldTweetTime:#{olderTweet.publishedAt}")
+          DuplicateTweet.create(:tweetId => tweetId, :orig_tweet_id => olderTweet.id)
+          return {:status => 1, :reject => "COPIED_TWEET"}
+        end
+        
       end
       twitterUser = TwitterUser.find_by_userId(userId)
       if ! twitterUser
@@ -271,41 +313,41 @@ class HarvesterController < ApplicationController
           twitterUser.save!
         rescue
           @log.error("** prob creating twitter user #{params['from_user']}: #{$!}")
+          if $!.to_s =~ /^Mysql2::Error: INSERT command denied/
+            return {:status => 1, :reject => "MYSQL_PERMISSIONS_ERROR", :details => $!.to_s}
+          end
           return {:status => 1, :reject => "CANT_CREATE_TWITTER_USER", :details => $!.to_s}
         end
       end
-      text = params[:text]
       if verbose==VERBOSE_MAX
           @log.debug("Save tweet: text:%s(%d),user:%s, id:%s" % 
                 [text, text.size, twitterUser, tweetId])
       end
-      tweet = findMainTextPart(text, parsedTime)
-      if tweet
-        # See if the tweet references more than one candidate.
-        if candidate.tweets.find_by_text(text)
-          @log.debug("Already saw tweet <#{text}> for this candidate")
-        else
-          candidate.tweets << tweet
-        end
-        return {:status => 1, :reject => "COPIED_TWEET"}
-      end
+      tweetScores = parseTweetScores(tweetData[:textKernel])
       begin
-        tweet = Tweet.new({:text=>text,
-                            :publishedAt=>parsedTime,
-                            :twitter_user_id => twitterUser.id,
-                            :tweetId=>tweetId})
+        tweet = Tweet.new({:text=>makeSafeViewableHTML(text),
+                           :textKernel => tweetData[:textKernel],
+                           :publishedAt=>parsedTime,
+                           :twitter_user_id => twitterUser.id,
+                           :sentimentScore => tweetScores[:sentimentScore],
+                           :positiveWordCount => tweetScores[:positiveWordCount],
+                           :negativeWordCount => tweetScores[:negativeWordCount],
+                           :tweetId=>tweetId})
       rescue
         msg = $!.to_s
         if msg != "Validation failed: Text has already been taken"
           @log.error("Can't save a tweet (text:%s(%d)): %s" % [text, text.size, msg])
         end
-        return {:status => 1, :reject => "COPIED_TWEET", :details => $!.to_s}
+        return {:status => 1, :reject => "TWEET_CREATION_FAILURE", :details => $!.to_s}
       end
       begin
         twitterUser.tweets << tweet
       rescue
         @log.error("Can't associate tweet %s with user %s: %s" %
                    [ tweet.text, twitterUser.userName, $!])
+        if $!.to_s =~ /^Mysql2::Error: INSERT command denied/
+          return {:status => 1, :reject => "MYSQL_PERMISSIONS_ERROR", :details => $!.to_s}
+        end
         return {:status => 1, :reject => "CANT_ASSOCIATE_TWITTER_USER", :details => $!.to_s}
       end
       begin
@@ -314,49 +356,77 @@ class HarvesterController < ApplicationController
         @log.error("Can't do candidate.tweets << tweet: #{$!}")
         return {:status => 1, :reject => "CANT_MAKE_CANDIDATE_TWEETS_ENTRY", :details => $!.to_s}
       end
-      begin
-        text.scan(@@hashtagSplitter) do | hword |
-          hword.each do |hw|
-            hashtag = Hashtag.find_by_hashtag(hw)
-            if hashtag.nil?
-              hashtag = Hashtag.new(:hashtag => hw)
-              begin
-                hashtag.save!
-              rescue
-                @log.error("Can't do hashtag.save!tweet: #{$!}")
-                return {:status => 1, :reject => "CANT_SAVE_HASHTAG", :details => $!.to_s}
-              end
-            end
-            begin
-              tweet.hashtags << hashtag
-              tweet.save!
-            rescue
-              @log.error("Can't do tweet.hashtags << hashtag: #{$!}")
-              return {:status => 1, :reject => "CANT_SAVE_HASHTAG_WITH_TWEET", :details => $!.to_s}
-            end
-          end # end inner each
-        end # end text.scan
-      rescue
-        @log.error("Can't assoc tweets and hashtags: #{$!}")
-      end
       return {:status => 0}
     end
   
-    def findMainTextPart(text, publishedTime)
-      # Allow a dup every four hours
-      fourHoursAgo = publishedTime - 4.hours
-      tweet = Tweet.find(:first, :conditions => ["text = ? and publishedAt >= ?", text, fourHoursAgo], :order => "publishedAt DESC" )
-      return tweet if tweet
-      linkFreeText = text.gsub('%', '\\%').
-                          gsub('_', '\\_').
-                          gsub(/\bhttp:\/\/[\S+]/, "%")
-      return nil if linkFreeText == text
-      tweet = Tweet.find(:first,
-                          :conditions => ["text like ? and publishedAt >= ?",
-                                          linkFreeText, fourHoursAgo],
-                          :order => "publishedAt DESC"
-                         )
-      return tweet
+    @@linkStart_re = /\A<[^>]*?href=["']\Z/
+    @@splitter = /(<[^>]*?href=["']|http:\/\/[^"' \t]+)/
+    def makeSafeViewableHTML(text)
+      revEnts = [
+          ['&lt;', '<'],
+          ['&gt;', '>'],
+          ['&quot;', '"'],
+          ['&apos;', '\''],
+          ['&amp;', '&'],
+      ]
+      revEnts.each { |src, dest| text.gsub(src, dest) }
+      pieces = text.split(@@splitter).grep(/./)
+      lim = pieces.size
+      piece = pieces[0]
+      madeChange = false
+      (1 .. lim - 1).each do |i|
+        prevPiece = piece
+        piece = pieces[i]
+        if piece.index('http://') == 0 && @@linkStart_re !~ prevPiece
+          pieces[i] = '<a href="%s">%s</a>' % [piece, piece]
+          madeChange = true
+        end
+      end
+      #TODO: Watch out for on* attributes and script & style tags
+      return madeChange ? pieces.join("") : text
+    end
+    
+    @@tweetParser = /\A(\s*(?:(?:RT\b[\s:]*)?(?:@[a-zA-Z][\w\-.]*[,:\s]*))*)
+                     (.*?)
+                     ((?:http:\/\/.*?\/\S+|[\#\@][a-zA-Z][\w\-.]*|\s+)*)\Z/mx
+    def parseTweet(text)
+      m = @@tweetParser.match(text)
+      if m.nil?
+        $stderr.puts("parseTweet: Failed to match ")
+      end
+      return {
+        :retweet => m[1],
+        :textKernel => m[2],
+        :trailingTagsAndLinks => m[3]
+      }
+    end
+    def parseTweetScores(text)
+      text.gsub!(/\bhttp:\/\/.*?\/\S+/, "")
+      text.gsub!(/\&\w+;/, "")
+      text.gsub!(/[\#\@][a-zA-Z]\w*/, "")
+      text.gsub!(/(?:\A|\s)'(\w.*?\w)'/, '\1')
+      posCount = 0
+      negCount = 0
+      
+      words = text.split(/[^\w']+/)
+      if words.size == 0
+        return 0
+      end
+      conn = PositiveWord.connection
+      qpart = words.map{|wd| "word = #{conn.quote(wd.downcase)}" }.join(" OR ")
+      $stderr.puts "separate words: <<#{qpart}>>"
+      
+      query = "select count(*) from positive_words where " + qpart
+      posCount = conn.select_rows(query)[0][0]
+      
+      conn = NegativeWord.connection
+      query = "select count(*) from negative_words where " + qpart
+      negCount = conn.select_rows(query)[0][0]
+      
+      tweetScores = {:positiveWordCount => posCount,
+                     :negativeWordCount => negCount,
+                     :sentimentScore => posCount - negCount
+      }
     end
   end # class
   

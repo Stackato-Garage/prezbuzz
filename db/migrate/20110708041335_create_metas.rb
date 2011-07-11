@@ -1,4 +1,4 @@
-class Meta < ActiveRecord::Migration
+class CreateMetas < ActiveRecord::Migration
   def self.up
     create_table :metas do |t|
       t.datetime :processTime

@@ -4,8 +4,8 @@ class CreateTwitterUsers < ActiveRecord::Migration
       t.string :userName
       t.string :userId
       t.string :profileImageUrl
-      t.timestamps
     end
+    add_index :twitter_users, :userId
   end
 
   def self.down
