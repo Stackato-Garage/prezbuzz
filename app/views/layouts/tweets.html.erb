@@ -186,12 +186,17 @@ See the file LICENSE.txt for licensing information.
 
         var getTimeParts = function(dt) {
           var hour = dt.getHours();
-          var ap = "am";
+          var ap;
           if (hour > 12) {
-            hour = hour - 12;
-            ap = "pm";
+              hour = hour - 12;
+              ap = "pm";
           } else if (hour == 12) {
-            ap = "pm";
+              ap = "pm";
+          } else {
+              ap = "am";
+              if (hour == 0) {
+                  hour = 12;
+              }
           }
           return [hour, ap];
         }
@@ -208,11 +213,11 @@ See the file LICENSE.txt for licensing information.
             var edt = new Date(endTime);
             var e_mm = mmToMonth[edt.getMonth()];
             var e_hour, e_ap;
-	    parts = getTimeParts(sdt);
+	    parts = getTimeParts(edt);
 	    e_hour = parts[0];
 	    e_ap = parts[1];
-            
-            var timeString;
+	    
+	    var timeString;
             if (sdt.getDate() == edt.getDate() || edt.getHours() == 0) {
                 timeString = ("on "
                               + s_mm
@@ -244,11 +249,13 @@ See the file LICENSE.txt for licensing information.
                               + sdt.getDate()
                               + ", "
                               + sdt.getFullYear()
-                              + " @ "
+                              + ", "
                               + s_hour
                               + ":00"
                               + s_ap
                               + " - "
+                              + e_mm
+                              + " "
                               + edt.getDate()
                               + ", "
                               + e_hour
