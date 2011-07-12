@@ -79,71 +79,17 @@ var getTweetCallback = function(json) {
   var results = json;//jQuery.parseJSON(json);
   var numTweets = results.length;
   stuffContainer.style.display = "block";
-  $('#holder').addClass('loading');
+  //$('#holder').addClass('loading');
   while (tweetDumpList.firstChild) {
     tweetDumpList.removeChild(tweetDumpList.firstChild);
   }
   insertTweets(results, 0, numTweets);
 };
 
-function swGotoPage(page){
-    console.log("page " + page);
-    // don't even try when we're trying to hit page 0
-    if( page == '0' ) { return; }
-    
-    if ( page == '1') {
-        // disable the back link
-        $('#twitter_controls #button_back').attr('disabled', 'disabled');
-    }
-    else {
-        $('#twitter_controls #button_back').removeAttr('disabled');
-    }
-    var forwardIndex = page + 1;
-    var forwardElem = ".swShowPage:contains('" + forwardIndex+ "')";
-    if ($(forwardElem).length == 0) {
-        $('#twitter_controls #button_forward').attr('disabled', 'disabled');
-    }
-    else {
-        $('#twitter_controls #button_forward').removeAttr('disabled');
-    }
-    var elem = ".swShowPage:contains('" + page + "')";
-    if ($(elem).length != 0 ) {
-        $(elem)[0].click();
-    }
-}
 
 function insertTweets(results, i, numTweets) {
     if (i >= numTweets) {
-        
-        // all tweets added, so run sweetpages
-        $('#holder').sweetPages({perPage:3});
-        $('#holder').removeClass('loading');
-                
-        var $pgBack = $('#twitter_controls #button_back');
-        var $pgForward = $('#twitter_controls #button_forward');
-        var active = '.swShowPage.active';
-        var offset = 'pgOffset';
-        
-        $.each([$pgBack, $pgForward], function(i,$obj){
-            console.log($obj);
-            // unbind old click event handler
-            $obj.unbind('click');
-            
-            // if there are 3 or fewer tweets, don't bother binding a click event to the buttons
-            if (numTweets <= 3) {
-                $obj.attr('disabled', 'disabled');
-            }
-            else {
-                $obj.click(function(){
-                    var nextPage =  parseInt($(active).text(), 10) + parseInt($(this).attr(offset), 10);
-                    swGotoPage(nextPage);
-                });
-            }
-        });
-        
-        // set the back button to disabled on load, since we'll be at the first page
-        $('#twitter_controls #button_back').attr('disabled', 'disabled');
-                
+    //    $('#holder').removeClass('loading');
         return;
     }
     
