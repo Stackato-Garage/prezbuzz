@@ -100,11 +100,9 @@ See the file LICENSE.txt for licensing information.
           row = selection.row;
           clickColumn = selection.column - 1; // col 0 for date
           dataColumn = clickColumnToDataColumn[clickColumn];
-          //alert("pressed row " + row + ", col " + clickColumn)
           var twitterLink = document.getElementById('twitterLink');
           var selectedColumn = document.getElementById('selectedColumn');
           twitterLink.style.display = "block";
-          //console.log("Column: " + dataColumn + ": " + candidateNames[clickColumn]);
           var candidateName = candidateNames[clickColumn];
           $("body").attr("class", candidateName);
           
@@ -145,10 +143,8 @@ See the file LICENSE.txt for licensing information.
         <% end %>
         
          $(document).ready(function() {
-          console.log("document ready");
           
           try {
-            console.log("attempting to get tweets on page load");
             loadCandidateContent(0, 3);
             getTweets(3, 0); // load Barack Obama's most recent tweets
           } catch(ex) {
@@ -172,15 +168,12 @@ See the file LICENSE.txt for licensing information.
       var loadCandidateContent = function(clickColumn, row) {
         var candidateName = candidateNames[clickColumn];
         var lastName = candidateName.split(/[\s,]+/)[1];
-        console.log("Loading Candidate " + candidateName);
         
-        console.log('last name: ' + lastName);
         // set body class
         $("body").attr("class", candidateName);
         
         // update candidate bar
         var candidateImg = '<img src="/images/' + lastName + '.jpg" >'
-        console.log(candidateImg);
         $('div#buzz_candidate_img').html(candidateImg);
         
         var mmToMonth = new Array("Jan", "Feb", "Mar", "Apr", "May", "Jun", "July", "Aug", "Sep", "Oct", "Nov", "Dec");
@@ -466,7 +459,6 @@ See the file LICENSE.txt for licensing information.
         autoReinitialise: true
       };
       var holder = $('#buzz_tweets').jScrollPane(settings);
-      console.log(holder);
     });
   </script>
 </body>
