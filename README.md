@@ -44,6 +44,7 @@ sqlite3 and the ruby adapter installed on your system):
     pool: 5
     timeout: 5000
     
+
 Initialize the database:
 
     rake db:migrate
@@ -91,9 +92,16 @@ rebuild the CSS file:
 Now populate the database:
 
     ruby script/driver.rb -h localhost -p 3000 update -v
-    
+
 If it's slow, keep in mind that sqlite3 is a few orders of
 magnitude slower than a networked database.
+
+If you change the candidates' colors, or add/remove candidates, you'll
+need to rebuild candidates.css, like so:
+
+   curl 'http://localhost:3000/stylesheets/rcss?rcss=candidateBuzz' > public/stylesheets/candidateBuzz.css
+
+This will need to be done on the server as well.
 
 ## To deploy:
 
