@@ -3,6 +3,52 @@
  * See the file LICENSE.txt for licensing information.
  */
 
+/* Eric Meyer Reset 2011 */
+
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, section, summary,
+time, mark, audio, video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	outline: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, section {
+	display: block;
+}
+body {
+	line-height: 1;
+}
+ol, ul {
+	list-style: none;
+}
+blockquote, q {
+	quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+	content: '';
+	content: none;
+}
+
+:focus {
+	outline: 1px solid #efefef;
+}
+
 body {
      margin: 0;
      padding: 0;
@@ -28,8 +74,10 @@ div#buzz_title .container h1 {
      text-shadow: 0px 3px 3px #999;
      color: #eee;
      font-size: 65px;
+     line-height: 65px;
      font-family: 'Paytone One', sans-serif;
      margin: 0;
+     padding-bottom: 10px;
 }
 div#buzz_chart {
      width: 960px;
@@ -54,10 +102,12 @@ div#buzz_chart iframe {
      font-family: 'Paytone One', sans-serif;
      line-height: 25px;
      padding: 5px 15px;
+     -webkit-border-radius: 20px;
      -moz-border-radius: 20px;
+     border-radius: 20px; 
      color: #eee;
      margin-left: 10px;
-     margin-top: 35px;
+     margin-top: 25px;
 }
 .buzz_button_link:hover {
      background-color: #999;
@@ -147,14 +197,27 @@ div#buzz_candidate #buzz_candidate_details {
      
 div#buzz_candidate img {
      float: left;
+     -webkit-border-radius: 5px;
      -moz-border-radius: 5px;
+     border-radius: 5px; 
      margin: 10px 10px 10px 0;
      -moz-box-shadow: 0px 2px 2px #000;
+     -webkit-box-shadow: 0ps 2px 2px #000;
+     box-shadow: 0px 2px 2px #000;
 }
 div#buzz_candidate strong {
      display: inline-block;
      margin: 6px 0;
      font-size: 60px;
+     font-weight: bold;
+}
+
+rect:hover {
+     cursor: pointer;
+}
+
+rect[fill=#ffffff] {
+     cursor: auto;
 }
      
 div#buzz_candidate span#time {
@@ -353,17 +416,24 @@ div#buzz_tweets {
      height: 350px;
      float: left;
      -moz-box-shadow: 0px 1px 3px #000;
+     -webkit-box-shadow: 0ps 1px 3px #000;
+     box-shadow: 0px 1px 3px #000;
+     -webkit-border-radius: 5px;
      -moz-border-radius: 5px;
+     border-radius: 5px; 
      padding-bottom: 10px;
      background-color: #fff;
 }
      
 div#word_cloud {
      background-color: #fff;
+     -webkit-border-radius: 5px;
      -moz-border-radius: 5px;
-     -moz-box-shadow: 0px 1px 3px #000;
+     border-radius: 5px; 
      width: 470px;
      -moz-box-shadow: 0px 1px 3px #000;
+     -webkit-box-shadow: 0ps 1px 3px #000;
+     box-shadow: 0px 1px 3px #000;
      height: 340px;
      margin-top: 0;
      padding-left: 0;
@@ -389,7 +459,9 @@ ul#tweetDump-list {
      position: absolute;
      width: 470px;
      height: 435px;
+     -webkit-border-radius: 5px;
      -moz-border-radius: 5px;
+     border-radius: 5px; 
      background-color: #424242;
      color: #fff;
      font-size: 36px;
@@ -442,8 +514,12 @@ ul#tweetDump-list {
 }
      
 .tweetUserImageContainer img {
+     -webkit-border-radius: 5px;
      -moz-border-radius: 5px;
+     border-radius: 5px; 
      -moz-box-shadow: 0px 1px 3px #000;
+     -webkit-box-shadow: 0ps 1px 3px #000;
+     box-shadow: 0px 1px 3px #000;
 }
      
 .tweetContentsContainer {
