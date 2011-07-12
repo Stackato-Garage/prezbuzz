@@ -214,7 +214,7 @@ class HarvesterController < ApplicationController
       #fdx.sync = true
       if nextPageURL.nil?
         candidate = Candidate.find(candidateID)
-        $stderr.puts "************** In getRawTweets"
+        #$stderr.puts "************** In getRawTweets"
         #fdx.puts "************** In getRawTweets"
         firstName = candidate.firstName
         lastName = candidate.lastName
@@ -252,7 +252,7 @@ class HarvesterController < ApplicationController
         @log.debug(msg)
         return {:status => 1, :reject => msg}
       end
-      $stderr.puts("parsedTime:#{parsedTime}, lastStopTime:#{lastStopTime}, test:#{parsedTime < lastStopTime}")
+      #$stderr.puts("parsedTime:#{parsedTime}, lastStopTime:#{lastStopTime}, test:#{parsedTime < lastStopTime}")
       if parsedTime < lastStopTime
         # The driver should do this, not the server
         @log.debug("We hit older tweets: #{params[:text]}, #{rawCreationTime}")
@@ -279,7 +279,7 @@ class HarvesterController < ApplicationController
       end
       text = params[:text]
       tweetData = parseTweet(text)
-      $stderr.puts("stderr: rawText: #{tweetData[:textKernel]}")
+      #$stderr.puts("stderr: rawText: #{tweetData[:textKernel]}")
       @log.puts("@log: rawText: #{tweetData[:textKernel]}")
       #a = {
       #  :retweet => m[1],
@@ -298,7 +298,7 @@ class HarvesterController < ApplicationController
       else
         olderTweet = Tweet.find_by_textKernel(tweetData[:textKernel])
         if olderTweet
-          $stderr.puts("Found an older tweet: parsedTime:#{parsedTime}, 4hrs ago:#{fourHoursAgo}, oldTweetTime:#{olderTweet.publishedAt}")
+          #$stderr.puts("Found an older tweet: parsedTime:#{parsedTime}, 4hrs ago:#{fourHoursAgo}, oldTweetTime:#{olderTweet.publishedAt}")
           DuplicateTweet.create(:tweetId => tweetId, :orig_tweet_id => olderTweet.id)
           return {:status => 1, :reject => "COPIED_TWEET"}
         end
@@ -414,7 +414,7 @@ class HarvesterController < ApplicationController
       end
       conn = PositiveWord.connection
       qpart = words.map{|wd| "word = #{conn.quote(wd.downcase)}" }.join(" OR ")
-      $stderr.puts "separate words: <<#{qpart}>>"
+      #$stderr.puts "separate words: <<#{qpart}>>"
       
       query = "select count(*) from positive_words where " + qpart
       posCount = conn.select_rows(query)[0][0]

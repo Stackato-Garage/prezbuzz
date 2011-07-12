@@ -208,7 +208,7 @@ class TweetsController < ApplicationController
     # Reinstate this once I figure out how to invalidate the cache.
     #wordCloud = CachedCloud.find_by_startTime_and_endTime_and_candidateId(startDate, endDate, candidateNum)
     if wordCloud
-      $stderr.puts("getWordCloud: return cached words")
+      #$stderr.puts("getWordCloud: return cached words")
       render :text => wordCloud.json_word_cloud
       return
     end
@@ -290,14 +290,14 @@ class TweetsController < ApplicationController
     # $stderr.puts("getTweets => #{sortedWordCounts.to_json[0..78]}")
     
     retStr = sortedWordCounts.to_json
-    CachedCloud.create(:startTime=>startDate, :endTime=>endDate, :candidateId=>candidateNum,
-                       :json_word_cloud=>retStr)
-    ccSize = CachedCloud.count
+    #CachedCloud.create(:startTime=>startDate, :endTime=>endDate, :candidateId=>candidateNum,
+    #                   :json_word_cloud=>retStr)
+    #ccSize = CachedCloud.count
     # $stderr.puts "cache size: #{ccSize}"
-    if ccSize > 100
-      oldRows = CachedCloud.find(:all, :order=>:startTime, :limit=>ccSize - 100)
-      oldRows.each {|row| row.delete if row.startTime != startDate}
-    end
+    #if ccSize > 100
+    #  oldRows = CachedCloud.find(:all, :order=>:startTime, :limit=>ccSize - 100)
+    #  oldRows.each {|row| row.delete if row.startTime != startDate}
+    #end
     render :text => retStr
   end
 
