@@ -332,7 +332,7 @@ See the file LICENSE.txt for licensing information.
         var tweets_url = "<%= url_for :controller => 'tweets', :action => 'getTweets'  %>";
         var wordCloud_url = "<%= url_for :controller => 'tweets', :action => 'getWordCloud'  %>";
 	var startDate, endDate;
-	if (row) {
+	if (typeof(row) != "undefined") {
 	  startDate = isoStartDates[row];
           endDate = getEndDate(row);
 	} else {
@@ -363,7 +363,7 @@ See the file LICENSE.txt for licensing information.
 <body>
 
   <!-- Stackato corner-banner -->
-  <div style="height: 149px; overflow: hidden; position: fixed; bottom: 0; left:0;">
+  <div style="height: 149px; overflow: hidden; position: fixed; bottom: 0; left:0; z-index: 99;">
       <a href="http://www.activestate.com/cloud"><img  alt="Powered by Stackato"
       src="http://templates.activestate.com/images/stackato-ribbon/bottom-left.png"></a>
   </div>
