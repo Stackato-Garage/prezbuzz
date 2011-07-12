@@ -25,11 +25,11 @@ See the file LICENSE.txt for licensing information.
       //<![CDATA[
       var intervalCandidatePosnTweetCounts, clickColumnToDataColumn;
       var candidateNames, isoStartDates, gEndDate;
-      var console = {
+      if (typeof(console) == "undefined") console = {
         log: function(msg) {
-          document.getElementById("console").value = msg;
+          //document.getElementById("console").value = msg;
         }
-      }
+      };
       function drawVisualization() {
         intervalCandidatePosnTweetCounts = [];
         candidateNames = [];
@@ -130,6 +130,19 @@ See the file LICENSE.txt for licensing information.
         };
         google.visualization.events.addListener(chart, 'select', mouseEventHandler);
         initSidebar();
+
+        var olderLinksElement = document.getElementById('button_time_back');
+        <% if @hasLinkInfo[:prevLinks] %>
+  	  setPrevLink(olderLinksElement);
+        <% else %>
+          checkOlderLinksID = setInterval(checkOlderLinks, 60 * 1000);
+        <% end %>
+        var newerLinksElement = document.getElementById('button_time_forward');
+        <% if @hasLinkInfo[:nextLinks] %>
+  	  setNextLink(newerLinksElement);
+        <% else %>
+          checkNewerLinksID = setInterval(checkNewerLinks, 60 * 1000);
+        <% end %>
         
          $(document).ready(function() {
           console.log("document ready");
@@ -271,11 +284,14 @@ See the file LICENSE.txt for licensing information.
         if (result) {
           clearInterval(checkOlderLinksID);
           checkOlderLinksID = 0;
-          var olderLinksElement = document.getElementById('olderLinkWrapper');
-          olderLinksElement.setAttribute("hasLink", 1);
-          olderLinksElement.innerHTML = '<%= link_to "Older", :controller => "tweets", :action => "index", :startDateISO => @linkInfo[:prevLinks][:startDate],
-                                       :endDateISO   => @linkInfo[:prevLinks][:endDate]  %>';
+          var olderLinksElement = document.getElementById('button_time_back');
+	  setPrevLink(olderLinksElement);
         }
+      };
+      
+      var setPrevLink = function(olderLinksElement) {
+          olderLinksElement.setAttribute("hasLink", 1);
+          olderLinksElement.innerHTML = '<%= link_to "&laquo; Older".html_safe, :controller => "tweets", :action => "index", :startDateISO => @linkInfo[:prevLinks][:startDate], :endDateISO   => @linkInfo[:prevLinks][:endDate]  %>';
       };
       var checkOlderLinks = function() {
         jQuery.getJSON(checkOlderLinksURL,
@@ -289,11 +305,13 @@ See the file LICENSE.txt for licensing information.
         if (result) {
           clearInterval(checkNewerLinksID);
           checkNewerLinksID = 0;
-          var newerLinksElement = document.getElementById('newerLinkWrapper');
-          newerLinksElement.setAttribute("hasLink", 1);
-          newerLinksElement.innerHTML = '<%= link_to "Newer", :controller => "tweets", :action => "index", :startDateISO => @linkInfo[:nextLinks][:startDate],
-                                       :endDateISO   => @linkInfo[:nextLinks][:endDate]  %>';
+          var newerLinksElement = document.getElementById('button_time_forward');
+	  setNextLink(newerLinksElement);
         }
+      };
+      var setNextLink = function(newerLinksElement) {
+          newerLinksElement.setAttribute("hasLink", 1);
+          newerLinksElement.innerHTML = '<%= link_to "Newer &raquo;".html_safe, :controller => "tweets", :action => "index", :startDateISO => @linkInfo[:nextLinks][:startDate], :endDateISO   => @linkInfo[:nextLinks][:endDate]  %>';
       };
       var checkNewerLinks = function() {
         jQuery.getJSON(checkNewerLinksURL,
@@ -301,14 +319,6 @@ See the file LICENSE.txt for licensing information.
                         endDateISO: gEndDate},
                         updateNewerLinks);
       };
-      
-      if (!hasActiveLink('olderLinkWrapper')) {
-        //Check once a minute
-        checkOlderLinksID = setInterval(checkOlderLinks, 60 * 1000);
-      }
-      if (!hasActiveLink('newerLinkWrapper')) {
-        checkNewerLinksID = setInterval(checkNewerLinks, 60 * 1000);
-      }
       
       var getEndDate = function(row) {
         if (row < gNumRows - 1) {
@@ -373,14 +383,8 @@ See the file LICENSE.txt for licensing information.
 
     <% if defined? @maxSize %>
       <div id="visualization"></div>
-      <% if @hasLinkInfo[:prevLinks] %>
-        <div id="button_time_back" class="buzz_button_link" hasLink="1"><%= link_to "&laquo; Older".html_safe, {:controller => "tweets", :action => "index", :startDateISO => @linkInfo[:prevLinks][:startDate],
-                                         :endDateISO   => @linkInfo[:prevLinks][:endDate]} %></div>
-      <% end %>
-      <% if @hasLinkInfo[:nextLinks] %>
-        <div id="button_time_forward" class="buzz_button_link" hasLink="1" hasLink="0"><%= link_to "Newer &raquo;".html_safe, :controller => "tweets", :action => "index", :startDateISO => @linkInfo[:nextLinks][:startDate],
-                                         :endDateISO   => @linkInfo[:nextLinks][:endDate] %></div>
-      <% end %>
+      <div id="button_time_back" class="buzz_button_link">[No earlier data]</div>
+      <div id="button_time_forward" class="buzz_button_link">[No newer data]</div>
     </div>
     <div id="buzz_candidate">
 
@@ -406,19 +410,6 @@ See the file LICENSE.txt for licensing information.
           <a class="swFB buzz_button_link" id="button_forward" value="Forward" pgoffset="1">&raquo;</a>
         </div>
       </div>
-<!--
-        <span id="olderLinkWrapper" hasLink="1"><%= link_to "Older", {:controller => "tweets", :action => "index", :startDateISO => @linkInfo[:prevLinks][:startDate],
-                                     :endDateISO   => @linkInfo[:prevLinks][:endDate]} %></span>
-  < % else % >
-    <span id="olderLinkWrapper">[No earlier data]</span>
-  < % end % > |
-  < % if @hasLinkInfo[:nextLinks] % >
-    <span id="newerLinkWrapper" hasLink="1" hasLink="0"><%= link_to "Newer", :controller => "tweets", :action => "index", :startDateISO => @linkInfo[:nextLinks][:startDate],
-                                     :endDateISO   => @linkInfo[:nextLinks][:endDate] %></span>
-  < % else % > 
-    <span id="newerLinkWrapper">[No later data]</span>
-  < % end % >
-      -->
       <div id="word_cloud_wrapper" >
         <!--Word cloud will go here-->
         <div id="word_cloud" >
@@ -444,6 +435,5 @@ See the file LICENSE.txt for licensing information.
   </div>
 <% end %>
   </div>
-  <text id="console" />
 </body>
 </html>
