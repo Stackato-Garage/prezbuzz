@@ -202,16 +202,33 @@ See the file LICENSE.txt for licensing information.
           return [hour, ap];
         }
 
+	var getSafeDate = function(timeStamp) {
+	    // Do it this way for Safari & IE.
+	    // Mozilla & Chrome js can parse ISO 8601 formats
+	    var m = /^(\d\d\d\d)-(\d\d)-(\d\d)T(\d\d:\d\d:\d\d)([\-\+])(\d\d):(\d\d)/.exec(timeStamp);
+	    if (!m) return new Date(timeStamp);
+	    var yr = m[1], mon=m[2], day=m[3], hrMinSec=m[4], 
+	        sign=m[5], offsetHour=m[6], offsetMin=m[7];
+	    var timeStr = (yr + "/" + mon + "/" + day
+	                   + " "
+	                   + hrMinSec
+			   + " UTC"
+			   + sign
+			   + offsetHour
+			   + offsetMin);
+	    return new Date(timeStr);
+	};
+
         var showLocalDate = function(startTime, endTime)
         {
-            var sdt = new Date(startTime);
+            var sdt = getSafeDate(startTime);
             var s_mm = mmToMonth[sdt.getMonth()];
             var s_hour, s_ap;
 	    var parts = getTimeParts(sdt);
 	    s_hour = parts[0];
 	    s_ap = parts[1];
 
-            var edt = new Date(endTime);
+            var edt = getSafeDate(endTime);
             var e_mm = mmToMonth[edt.getMonth()];
             var e_hour, e_ap;
 	    parts = getTimeParts(edt);
