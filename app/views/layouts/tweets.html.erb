@@ -91,7 +91,6 @@ See the file LICENSE.txt for licensing information.
           return word + "s";
         };
         var mouseEventHandler = function() {
-          debugger;
           var dataColumn, clickColumn, selection = chart.getSelection()[0];
           if (!selection) {
               alert("clickHandler: no selection!... ");
@@ -150,9 +149,9 @@ See the file LICENSE.txt for licensing information.
           try {
             console.log("attempting to get tweets on page load");
             loadCandidateContent(0, 3);
-            getTweets(2, 0); // load Barack Obama's most recent tweets
+            getTweets(3, 0); // load Barack Obama's most recent tweets
           } catch(ex) {
-            alert("prob in getTweets: " + ex)
+            alert("prob in drawVisualization: " + ex);
           }
         });
       }
@@ -202,12 +201,16 @@ See the file LICENSE.txt for licensing information.
             var sdt = new Date(startTime);
             var s_mm = mmToMonth[sdt.getMonth()];
             var s_hour, s_ap;
-            [s_hour, s_ap] = getTimeParts(sdt);
+	    var parts = getTimeParts(sdt);
+	    s_hour = parts[0];
+	    s_ap = parts[1];
 
             var edt = new Date(endTime);
             var e_mm = mmToMonth[edt.getMonth()];
             var e_hour, e_ap;
-            [e_hour, e_ap] = getTimeParts(edt);
+	    parts = getTimeParts(sdt);
+	    e_hour = parts[0];
+	    e_ap = parts[1];
             
             var timeString;
             if (sdt.getDate() == edt.getDate() || edt.getHours() == 0) {
