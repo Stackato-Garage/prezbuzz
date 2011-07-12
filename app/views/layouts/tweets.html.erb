@@ -144,12 +144,27 @@ See the file LICENSE.txt for licensing information.
         
          $(document).ready(function() {
           
+          (function() {
           try {
-            loadCandidateContent(0, 3);
-            getTweets(3, 0); // load Barack Obama's most recent tweets
+            // Load the most recent tweets that are available for a candidate,
+            // starting with the first in the list.
+            // We should really update this based on the last candidate looked at,
+            // and see if we got to this page from an earlier page or a later one.
+            var clickNum, intervalNum;
+            for (clickNum = 0; clickNum < clickColumnToDataColumn.length; clickNum++) {
+              var candNum = clickColumnToDataColumn[clickNum];
+              for (intervalNum = 3; intervalNum >= 0; intervalNum--)
+                if (intervalCandidatePosnTweetCounts[intervalNum][clickNum] > 0) {
+                  alert("Show tweets for cand " + clickColumnToDataColumn[clickNum] + ", interval: " + interval);
+                  loadCandidateContent(clickNum, intervalNum);
+                  getTweets(intervalNum, clickNum); // load Barack Obama's most recent tweets
+                  return;
+                }
+            }
           } catch(ex) {
-            alert("prob in drawVisualization: " + ex);
+            alert("prob in drawVisualization: get first batch of tweets " + ex);
           }
+          })();
         });
       }
       var getTotalTweetCount = function(clickColumn, row) {
