@@ -55,6 +55,9 @@ body {
      background-image: url(/images/hex.png);
      background-color: #333;
 }
+a {
+     color: #3366CC;
+}
 div#buzz_content {
      width: 100%;
 }
