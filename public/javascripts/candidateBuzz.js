@@ -123,6 +123,8 @@ function insertTweets(results, i, numTweets) {
     listitem = document.createElement("li");
     listitem.innerHTML = stuff;
     tweetDumpList.appendChild(listitem);
-    setTimeout(insertTweets, 50, results, i + 1, numTweets);
+    setTimeout(function() {
+            insertTweets(results, i + 1, numTweets);
+        }, 50);
     // yellow fade would be nice here....
 }
