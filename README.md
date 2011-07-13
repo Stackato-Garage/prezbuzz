@@ -121,9 +121,9 @@ the default service name.
     ruby script/driver -h <app-url> init
 
     
-### Put MySQL in UTF-8 mode
+### Set database tables to use UTF-8
 
-We need to change the default character set for MySQL tables to accomodate UTF-8. Use the service name shown during 'stackato push':
+Change the default character set for MySQL tables to accomodate UTF-8 twitter data. Use the mysql service name shown during 'stackato push' for the 'stackato dbshell ...' command:
     
     stackato dbshell prezbuzz mysql-<id>
     > ALTER TABLE tweets CONVERT TO CHARACTER SET utf8 collate utf8_unicode_ci;
@@ -142,7 +142,7 @@ gets it to fetch a new batch of tweets.
 
 This is best run as part of a cron job once every hour or two.
 
-## Test the app in a browser:
+### Test the app in a browser:
 
 With a micro-cloud deployment of Stackato, the default URL would be:
 
