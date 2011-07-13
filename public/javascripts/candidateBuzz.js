@@ -36,7 +36,7 @@ var processPayload = function(hParts, text) {
       term = parts[i + 1];
       hParts.push('<a href="https://twitter.com/#!/');
       hParts.push(term);
-      hParts.push('">@');
+      hParts.push('" target="_blank">@');
       hParts.push(term);
       hParts.push('</a>');
       skipPart = true;
@@ -45,7 +45,7 @@ var processPayload = function(hParts, text) {
       term = parts[i + 1];
       hParts.push('<a href="https://twitter.com/#!/search/%23');
       hParts.push(term);
-      hParts.push('">#');
+      hParts.push('" target="_blank">#');
       hParts.push(term);
       hParts.push('</a>');
       skipPart = true;
@@ -82,7 +82,6 @@ var getTweetCallback = function(json) {
   insertTweets(results, 0, numTweets);
 };
 
-
 function insertTweets(results, i, numTweets) {
     if (i >= numTweets) {
         return;
@@ -97,7 +96,7 @@ function insertTweets(results, i, numTweets) {
       hParts.push('<div class="tweetUserImageContainer">');
       hParts.push('<a href="');
       hParts.push(twitterLink);
-      hParts.push('"><img height="48" width="48" src="');
+      hParts.push('" target="_blank"><img height="48" width="48" src="');
       hParts.push(result.img);
       hParts.push('" border="0"></a></div>\n');
     }
@@ -105,7 +104,7 @@ function insertTweets(results, i, numTweets) {
     hParts.push('<div class="tweetUserNameContainer">');
     hParts.push('<a href="http://twitter.com/');
     hParts.push(result.name);
-    hParts.push('">');
+    hParts.push('" target="_blank">');
     hParts.push(result.name);
     hParts.push('</a>');
     hParts.push('</div>'); // tweetUserNameContainer

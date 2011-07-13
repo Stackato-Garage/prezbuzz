@@ -378,7 +378,7 @@ class HarvesterController < ApplicationController
         prevPiece = piece
         piece = pieces[i]
         if piece.index('http://') == 0 && @@linkStart_re !~ prevPiece
-          pieces[i] = '<a href="%s">%s</a>' % [piece, piece]
+          pieces[i] = '<a href="%s" target="_blank">%s</a>' % [piece, piece]
           madeChange = true
         end
       end
