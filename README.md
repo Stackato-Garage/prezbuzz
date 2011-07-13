@@ -105,15 +105,11 @@ This will need to be done on the server as well.
 
 ## Deploy to Stackato:
 
-The current implementation of Prezbuzz requires data updates to be
-initiated remotely. A local 'driver' script contacts the application and
-gets it to fetch a new batch of tweets.
-
-To deploy the application to Stackato:
+In the top-level directory of the project, run:
 
     stackato push prezbuzz
 
-When prompted, choose "y" to bind a Mysql service to the app and accept
+When prompted, choose "y" to bind a MySQL service to the app and accept
 the default service name.
 
 ### Initialize the database:
@@ -123,7 +119,9 @@ the default service name.
     
 ### Set database tables to use UTF-8
 
-Change the default character set for MySQL tables to accomodate UTF-8 twitter data. Use the mysql service name shown during 'stackato push' for the 'stackato dbshell ...' command:
+Change the default character set for MySQL tables to accomodate UTF-8
+twitter data. Use the mysql service name shown during 'stackato push'
+for the 'stackato dbshell ...' command:
     
     stackato dbshell prezbuzz mysql-<id>
     > ALTER TABLE tweets CONVERT TO CHARACTER SET utf8 collate utf8_unicode_ci;
