@@ -55,6 +55,9 @@ body {
      background-image: url(/images/hex.png);
      background-color: #333;
 }
+a {
+     color: #3366CC;
+}
 div#buzz_content {
      width: 100%;
 }
@@ -210,14 +213,6 @@ div#buzz_candidate strong {
      margin: 6px 0;
      font-size: 60px;
      font-weight: bold;
-}
-
-rect:hover {
-     cursor: pointer;
-}
-
-rect[fill=#ffffff] {
-     cursor: auto;
 }
      
 div#buzz_candidate span#time {
@@ -545,4 +540,16 @@ ul#tweetDump-list {
 }
 #twitterHeader img {
      margin-bottom: -2.5px;
+}
+
+#branding {
+     display: block;
+     text-decoration: none;
+     height: 150px;
+     width: 150px;
+     overflow: hidden;
+     position: fixed;
+     bottom: 0;
+     left: 0;
+     background-image: url(http://templates.activestate.com/images/stackato-ribbon/bottom-left.png);
 }

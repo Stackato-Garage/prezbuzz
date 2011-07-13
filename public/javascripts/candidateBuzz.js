@@ -8,10 +8,10 @@ var isCharPattern = /\w$/;
 var tweetDump = null;
 var tweetDumpList = null;
 var wordCloudDiv = null;
-var stuffContainer = null;
+//var stuffContainer = null;
 
 function initSidebar() {
-    stuffContainer = document.getElementById("stuff-container");
+    //stuffContainer = document.getElementById("stuff-container");
     tweetDump = document.getElementById("buzz_tweets");
     tweetDumpList = document.getElementById("holder");
     wordCloudDiv = document.getElementById("word_cloud");
@@ -65,21 +65,17 @@ var processPayload = function(hParts, text) {
 var getWordCloudCallback = function(json) {
     //alert("about to build cloud from " + json.length + " iterms")
     var wordCloudDiv = document.getElementById("word_cloud");
-    $('#word_cloud').addClass('loading');
     while (wordCloudDiv.firstChild) {
         wordCloudDiv.removeChild(wordCloudDiv.firstChild);
     }
     $("#word_cloud").jQCloud(json);
-    $("#word_cloud").removeClass('loading');
 };
 
 // Now setup the json tweet stuff
 var getTweetCallback = function(json) {
   var outlet = document.getElementById("temp");
-  var results = json;//jQuery.parseJSON(json);
+  var results = json;
   var numTweets = results.length;
-  stuffContainer.style.display = "block";
-  //$('#holder').addClass('loading');
   while (tweetDumpList.firstChild) {
     tweetDumpList.removeChild(tweetDumpList.firstChild);
   }
@@ -89,7 +85,6 @@ var getTweetCallback = function(json) {
 
 function insertTweets(results, i, numTweets) {
     if (i >= numTweets) {
-    //    $('#holder').removeClass('loading');
         return;
     }
     
