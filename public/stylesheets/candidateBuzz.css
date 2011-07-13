@@ -116,10 +116,10 @@ div#buzz_chart iframe {
      background-color: #999;
      color: #fff;
 }
-.buzz_button_link[disabled] {
+.buzz_button_link[disabled='disabled'] {
      opacity: .5;
 }
-.buzz_button_link:hover[disabled] {
+.buzz_button_link:hover[disabled='disabled'] {
      background-color: #666;
      color: #eee;
 }

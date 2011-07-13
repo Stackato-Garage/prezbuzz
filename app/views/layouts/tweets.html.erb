@@ -117,13 +117,15 @@ See the file LICENSE.txt for licensing information.
 
         var olderLinksElement = document.getElementById('button_time_back');
         <% if @hasLinkInfo[:prevLinks] %>
-  	  setPrevLink(olderLinksElement);
+          setPrevLink(olderLinksElement);
+          $('#button_time_back').attr('disabled', '');
         <% else %>
           checkOlderLinksID = setInterval(checkOlderLinks, 60 * 1000);
         <% end %>
         var newerLinksElement = document.getElementById('button_time_forward');
         <% if @hasLinkInfo[:nextLinks] %>
-  	  setNextLink(newerLinksElement);
+          setNextLink(newerLinksElement);
+          $('#button_time_forward').attr('disabled', '');
         <% else %>
           checkNewerLinksID = setInterval(checkNewerLinks, 60 * 1000);
         <% end %>
@@ -427,9 +429,9 @@ See the file LICENSE.txt for licensing information.
       <%= yield %>
 
     <% if defined? @maxSize %>
-      <div id="visualization"></div>
-      <div id="button_time_back" class="buzz_button_link">[No earlier data]</div>
-      <div id="button_time_forward" class="buzz_button_link">[No newer data]</div>
+    <div id="visualization"></div>
+      <div id="button_time_back" class="buzz_button_link" disabled="disabled">&laquo; Older</div>
+      <div id="button_time_forward" class="buzz_button_link" disabled="disabled">Newer &raquo;</div>
     </div>
     <div id="buzz_candidate">
 
