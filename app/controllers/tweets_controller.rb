@@ -289,9 +289,11 @@ class TweetsController < ApplicationController
           sortedWordCounts[0]['text'] = "#{name2} #{name1}"
           sortedWordCounts.slice!(1)
       end
-      if sortedWordCounts[0]['weight'] > sortedWordCounts[1]['weight'] * 1.3
-        sortedWordCounts[0]['weight'] = (sortedWordCounts[1]['weight'] * 1.3 + 0.5).to_i
-      end
+      # Make the name show up equal to the next one.
+      sortedWordCounts[0]['weight'] = sortedWordCounts[1]['weight']
+      #if sortedWordCounts[0]['weight'] > sortedWordCounts[1]['weight'] * 1.3
+        #sortedWordCounts[0]['weight'] = (sortedWordCounts[1]['weight'] * 1.3 + 0.5).to_i
+      # end
     end
     # $stderr.puts("Got #{sortedWordCounts.size} words to process")
     # $stderr.puts("getTweets => #{sortedWordCounts.to_json[0..78]}")
