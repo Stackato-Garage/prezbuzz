@@ -20,6 +20,7 @@ See the file LICENSE.txt for licensing information.
     <%= stylesheet_link_tag 'jqcloud' %>
     <%= javascript_include_tag 'jquery.mousewheel' %>
     <%= javascript_include_tag 'jquery.jscrollpane.min' %>
+    <%= javascript_include_tag 'jquery.simplemodal.1.4.1.min' %>
     <%= javascript_include_tag 'candidateBuzz' %>
     <%= stylesheet_link_tag 'candidateBuzz' %>
     <script type="text/javascript" >
@@ -116,13 +117,15 @@ See the file LICENSE.txt for licensing information.
 
         var olderLinksElement = document.getElementById('button_time_back');
         <% if @hasLinkInfo[:prevLinks] %>
-  	  setPrevLink(olderLinksElement);
+          setPrevLink(olderLinksElement);
+          $('#button_time_back').attr('disabled', '');
         <% else %>
           checkOlderLinksID = setInterval(checkOlderLinks, 60 * 1000);
         <% end %>
         var newerLinksElement = document.getElementById('button_time_forward');
         <% if @hasLinkInfo[:nextLinks] %>
-  	  setNextLink(newerLinksElement);
+          setNextLink(newerLinksElement);
+          $('#button_time_forward').attr('disabled', '');
         <% else %>
           checkNewerLinksID = setInterval(checkNewerLinks, 60 * 1000);
         <% end %>
@@ -413,7 +416,8 @@ See the file LICENSE.txt for licensing information.
   <div id="buzz_content">
     <div id="buzz_title">
         <div class="container">
-            <a id="buzz_tweet" class="buzz_button_link"><img src="/images/twitter_newbird_white.png" height=35px alt="Twitter" /></a>
+            <a id="buzz_tweet" class="buzz_button_link"
+               href="http://twitter.com/share?url=http%3A%2F%2Frails-prezbuzz.stackato.com&text=Check%20out%20%23candidatebuzz!%20Powered%20by%20%23stackato" target="_blank"><img src="/images/twitter_newbird_white.png" height=35px alt="Twitter" /></a>
             <a id="buzz_help" class="buzz_button_link">?</a>
             <h1>Candidate Buzz</h1>
         </div>
@@ -424,9 +428,9 @@ See the file LICENSE.txt for licensing information.
       <%= yield %>
 
     <% if defined? @maxSize %>
-      <div id="visualization"></div>
-      <div id="button_time_back" class="buzz_button_link">[No earlier data]</div>
-      <div id="button_time_forward" class="buzz_button_link">[No newer data]</div>
+    <div id="visualization"></div>
+      <div id="button_time_back" class="buzz_button_link" disabled="disabled">&laquo; Older</div>
+      <div id="button_time_forward" class="buzz_button_link" disabled="disabled">Newer &raquo;</div>
     </div>
     <div id="buzz_candidate">
 
@@ -462,13 +466,28 @@ See the file LICENSE.txt for licensing information.
     
 <% end %>
   </div>
+  <div id="help_content" class="basic-modal-content">
+    <h3>CandidateBuzz Instructions</h3>
+    <br />
+    <p>
+      CandidateBuzz shows you tweets about the current batch of Republican Presidential candidates and Barack Obama.
+    <p>
+      To change which candidate you're viewing, click on a bar in the chart to load tweets about a candidate in a specific hour, or click on their colored square in the legend to load all the tweets in the time period currently displayed in the chart.
+    <p>
+    <p>
+      The word cloud is generated from the content in the tweets.  Some of the words in the cloud are linked to sites that were mentioned in the tweets.
+    </p>
+  </div>
   <script>
     $(document).ready(function() {
       var settings = {
         showArrows: true,
-        autoReinitialise: true
       };
       var holder = $('#buzz_tweets').jScrollPane(settings);
+      $("#buzz_help").click(function(e) {
+        e.preventDefault();
+        $("#help_content").modal();
+      });
     });
   </script>
 </body>

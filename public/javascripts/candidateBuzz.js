@@ -84,6 +84,9 @@ var getTweetCallback = function(json) {
 
 function insertTweets(results, i, numTweets) {
     if (i >= numTweets) {
+        var tweetScroll = $('#buzz_tweets');
+        var scrollAPI = tweetScroll.data('jsp');
+        scrollAPI.reinitialise();
         return;
     }
     
