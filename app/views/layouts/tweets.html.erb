@@ -142,28 +142,50 @@ See the file LICENSE.txt for licensing information.
           checkNewerLinksID = setInterval(checkNewerLinks, 60 * 1000);
         <% end %>
         
+        var showAnyCandidate = function() {
+          // Load the most recent tweets that are available for a candidate,
+          // starting with the first in the list.
+          // We should really update this based on the last candidate looked at,
+          // and see if we got to this page from an earlier page or a later one.
+          var clickNum, intervalNum;
+          for (clickNum = 0; clickNum < clickColumnToDataColumn.length; clickNum++) {
+              for (intervalNum = 3; intervalNum >= 0; intervalNum--) {
+                  if (intervalCandidatePosnTweetCounts[intervalNum][clickNum] > 0) {
+                      loadCandidateContent(clickNum, intervalNum);
+                      getTweets(intervalNum, clickNum);
+                      return;
+                  }
+              }
+          }
+        }
+        
          $(document).ready(function() {
-          
-          (function() {
           try {
-            // Load the most recent tweets that are available for a candidate,
-            // starting with the first in the list.
-            // We should really update this based on the last candidate looked at,
-            // and see if we got to this page from an earlier page or a later one.
-            var clickNum, intervalNum;
-            for (clickNum = 0; clickNum < clickColumnToDataColumn.length; clickNum++) {
-              var candNum = clickColumnToDataColumn[clickNum];
-              for (intervalNum = 3; intervalNum >= 0; intervalNum--)
-                if (intervalCandidatePosnTweetCounts[intervalNum][clickNum] > 0) {
-                  loadCandidateContent(clickNum, intervalNum);
-                  getTweets(intervalNum, clickNum); // load Barack Obama's most recent tweets
-                  return;
+            <% if @suggestedCandidate.nil? %>
+              showAnyCandidate();
+            <% else %>
+              // The controller specifies which candidate to load.
+              var candidateNum = <%= @suggestedCandidate %>;
+              // Figure out the click num for this
+              for (clickNum = 0; clickNum < clickColumnToDataColumn.length; clickNum++) {
+                if (clickColumnToDataColumn[clickNum] + 1 == candidateNum) {
+                  for (intervalNum = 3; intervalNum >= 0; intervalNum--) {
+                    if (intervalCandidatePosnTweetCounts[intervalNum][clickNum] > 0) {
+                        // loadCandidateContent - uses click columns
+                        loadCandidateContent(clickNum, intervalNum);
+                        // getTweets - uses data columns.
+                        getTweets(intervalNum, clickColumnToDataColumn[clickNum]);
+                        return;
+                    }
+                  }
                 }
-            }
+              }
+              // Still here? Do the default action
+              showAnyCandidate();
+            <% end %>
           } catch(ex) {
             alert("prob in drawVisualization: get first batch of tweets " + ex);
           }
-          })();
         });
       }
       var getTotalTweetCount = function(clickColumn, row) {

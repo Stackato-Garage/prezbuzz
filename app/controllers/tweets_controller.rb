@@ -123,6 +123,12 @@ class TweetsController < ApplicationController
         end
       end
     end
+    data = findSessionData
+    if !data['candidateNum'].blank? && !@candidates_to_drop[data['candidateNum']]
+      @suggestedCandidate = data['candidateNum'].to_i
+    else
+      @suggestedCandidate = nil
+    end
     respond_to do |format|
       format.html # index.html.erb
       format.xml  { render :xml => {
@@ -141,6 +147,7 @@ class TweetsController < ApplicationController
       $stderr.puts("No candidateNum --- try index")
       return index
     end
+    updateSessionData(candidateNum)
     startDate = DateTime.parse(startDateISO, true)
     endDate = DateTime.parse(endDateISO, true)
     tweets = Candidate.find(candidateNum).tweets.find(:all,
@@ -374,6 +381,15 @@ class TweetsController < ApplicationController
   def countDuplicates(tweetIds)
     query = (['orig_tweet_id = ?'] * tweetIds.size).join(" OR ")
     return DuplicateTweet.count(:conditions => [query, *tweetIds])
+  end
+  
+  def findSessionData
+    session[:prezbuzzData] ||= {}
+  end
+  
+  def updateSessionData(candidateNum)
+    data = findSessionData
+    data['candidateNum'] = candidateNum
   end
   
   def calcHasOlderPosts(timeMetrics)
