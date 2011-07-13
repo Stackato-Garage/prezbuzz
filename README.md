@@ -1,17 +1,18 @@
 # Prezbuzz
 
 Prezbuzz is a Rails 3.0 application that tracks the twitter activity
-related to the candidates running for the American 2012 Presidential Election
+related to the candidates running for the American 2012 Presidential Election.
 
 See LICENSE.txt for the license on PrezBuzz
 
 To get Prezbuzz working, it needs to be deployed, initialized, and
-then updated on a regular basis.
+then updated on a regular basis. This README covers running it on bare
+hardware (e.g. your workstation) and deploying it to Stackato.
 
 ## Prerequisities:
 
-You'll need Ruby (1.8.7 or 1.9.2) and Rails 3.0 installed.  We recommend
-installing a Ruby sandbox using rvm
+You'll need Ruby (1.8.7 or 1.9.2), Rails 3.0, and rake 0.9.2 or later
+installed. We recommend installing a Ruby sandbox using rvm
 
     ($ bash < <(curl -s https://rvm.beginrescueend.com/install/rvm))
     
@@ -27,14 +28,14 @@ flag to curl, or downloading the script separately, and handing it to bash local
     
 or find out more at <https://rvm.beginrescueend.com/>.
 
-Now go to the directory that contains this file, and pull down
+Change to the directory that contains this file, and pull down
 any other required gems:
 
     bundle install
     
 ## To run the app locally:
 
-The app is configured to run with mysql.  To run with sqlite3
+The app is configured to run with mysql. To run with sqlite3
 locally (during testing), change the development section in
 config/database.yml to the following (assuming that you have
 sqlite3 and the ruby adapter installed on your system):
@@ -43,7 +44,6 @@ sqlite3 and the ruby adapter installed on your system):
     database: dv/development.sqlite3
     pool: 5
     timeout: 5000
-    
 
 Initialize the database:
 
@@ -55,15 +55,15 @@ If you get this error message:
     rake aborted!
     uninitialized constant Rake::DSL
     
-install a newer rake:
+...install a newer rake:
 
     gem install rake -v=0.9.2
     
-Now when you run `rake db:migrate`, you should see this warning:
+When you run `rake db:migrate`, you should see this warning:
 
     WARNING: Global access to Rake DSL methods is deprecated.  Please include
         ...  Rake::DSL into classes and modules which use the Rake DSL methods.
-    WARNING: DSL method Prezbuzz::Application#task called at /home/ericp/opt/ruby-1.9.2-p136/lib/ruby/gems/1.9.1/gems/railties-3.0.0/lib/rails/application.rb:214:in
+    WARNING: DSL method Prezbuzz::Application#task called at /home/user/opt/ruby-1.9.2-p136/lib/ruby/gems/1.9.1/gems/railties-3.0.0/lib/rails/application.rb:214:in
 
 followed by this expected output:
 
@@ -79,8 +79,8 @@ Start the server:
 
     rails server webrick
     
-Change to another console, in the same directory, with
-the same environment, and initialize the database:
+Change to another console, in the same directory, with the same
+environment, and initialize the database:
 
     ruby script/driver.rb -h localhost -p 3000 init
 
@@ -103,31 +103,49 @@ need to rebuild candidates.css, like so:
 
 This will need to be done on the server as well.
 
-## To deploy:
+## Deploy to Stackato:
 
-   stackato push prezbuzz
+In the top-level directory of the project, run:
 
-       Bind a Mysql service
+    stackato push prezbuzz
 
-## To initialize:
+When prompted, choose "y" to bind a MySQL service to the app and accept
+the default service name.
 
-    ruby script/driver -h <hostname> init
-    # Now manually set the database to UTF-8:
-    mysql `stackato service-conn prezbuzz`
+### Initialize the database:
+
+    ruby script/driver -h <app-url> init
+
+    
+### Set database tables to use UTF-8
+
+Change the default character set for MySQL tables to accomodate UTF-8
+twitter data. Use the mysql service name shown during 'stackato push'
+for the 'stackato dbshell ...' command:
+    
+    stackato dbshell prezbuzz mysql-<id>
     > ALTER TABLE tweets CONVERT TO CHARACTER SET utf8 collate utf8_unicode_ci;
     > ALTER TABLE negative_words CONVERT TO CHARACTER SET utf8 collate utf8_unicode_ci;
     > ALTER TABLE positive_words CONVERT TO CHARACTER SET utf8 collate utf8_unicode_ci;
     > ALTER TABLE stop_words CONVERT TO CHARACTER SET utf8 collate utf8_unicode_ci;
     > quit
 
-## To update:
+### Populate/Update twitter data:
+
+The current implementation of Prezbuzz requires data updates to be
+initiated remotely. A local 'driver' script contacts the application and
+gets it to fetch a new batch of tweets.
 
     ruby script/driver -h <hostname> update
 
 This is best run as part of a cron job once every hour or two.
 
+### Test the app in a browser:
 
-## Test the app in a browser:
+With a micro-cloud deployment of Stackato, the default URL would be:
 
-<http://prezbuzz.stackato.activestate.com/>
+  http://prezbuzz.stackato.local
+  
+A hosted version of the same app can be found here:
 
+  http://prezbuzz.stackato.com
