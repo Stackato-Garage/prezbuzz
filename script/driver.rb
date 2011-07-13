@@ -23,15 +23,31 @@ class Wrapper
   
   def http_get(path, params=nil)
     http = Net::HTTP.new(@host, @port)
-    begin
-      return http.get("#{path}?".concat(params.collect { |k,v| "#{k}=#{CGI::escape(v.to_s)}" }.join('&'))) if not params.nil?
-      return http.get(path)
-    rescue
-      $stderr.puts "Error in http_get #{@host}:#{@port}#{path}: #{$!}"
-      raise
+    lim = 3
+    i = 0
+    while true
+      begin
+        return http.get("#{path}?".concat(params.collect { |k,v| "#{k}=#{CGI::escape(v.to_s)}" }.join('&'))) if not params.nil?
+        return http.get(path)
+      rescue
+        raise if i >= 4
+        $stderr.puts "Error in http_get #{@host}:#{@port}#{path}: #{$!}"
+	raise if @host.index("stackato").nil?
+        $stderr.puts "Try restarting stackato..."
+        system("stackato restart prezbuzz")
+        # system("stackato target api.stackato.activestate.com && stackato login stackato restart prezbuzz")
+      end
+      i += 1
     end 
   end
   
+  def ping
+    res = http_get('/harvester/hello')
+    if res.body != "hello"
+        puts res.body
+    end
+  end
+
   def initApp
     res = http_get('/harvester/initApp')
     return res.body
@@ -177,6 +193,8 @@ if __FILE__ == $0
   when "init", "initApp"
     res = w.initApp
     puts res
+  when "ping"
+    w.ping
   when "update"
     w.setup1
     w.runThroughCandidates
