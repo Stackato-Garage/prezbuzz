@@ -20,6 +20,7 @@ See the file LICENSE.txt for licensing information.
     <%= stylesheet_link_tag 'jqcloud' %>
     <%= javascript_include_tag 'jquery.mousewheel' %>
     <%= javascript_include_tag 'jquery.jscrollpane.min' %>
+    <%= javascript_include_tag 'jquery.simplemodal.1.4.1.min' %>
     <%= javascript_include_tag 'candidateBuzz' %>
     <%= stylesheet_link_tag 'candidateBuzz' %>
     <script type="text/javascript" >
@@ -464,12 +465,28 @@ See the file LICENSE.txt for licensing information.
     
 <% end %>
   </div>
+  <div id="help_content" class="basic-modal-content">
+    <h3>CandidateBuzz Instructions</h3>
+    <br />
+    <p>
+      CandidateBuzz shows you tweets about the current batch of Republican Presidential candidates and Barack Obama.
+    <p>
+      To change which candidate you're viewing, click on a bar in the chart to load tweets about a candidate in a specific hour, or click on their colored square in the legend to load all the tweets in the time period currently displayed in the chart.
+    <p>
+    <p>
+      The word cloud is generated from the content in the tweets.  Some of the words in the cloud are linked to sites that were mentioned in the tweets.
+    </p>
+  </div>
   <script>
     $(document).ready(function() {
       var settings = {
         showArrows: true,
       };
       var holder = $('#buzz_tweets').jScrollPane(settings);
+      $("#buzz_help").click(function(e) {
+        e.preventDefault();
+        $("#help_content").modal();
+      });
     });
   </script>
 </body>
