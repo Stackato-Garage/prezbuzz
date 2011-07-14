@@ -80,9 +80,7 @@ Start the server:
     rails server webrick
     
 Change to another console, in the same directory, with the same
-environment, and initialize the database:
-
-    ruby script/driver.rb -h localhost -p 3000 init
+environment, and start interacting with the server.
 
 If you've modified the list of candidates, or their colors, you'll need to
 rebuild the CSS file:
@@ -111,11 +109,6 @@ In the top-level directory of the project, run:
 
 When prompted, choose "y" to bind a MySQL service to the app and accept
 the default service name.
-
-### Initialize the database:
-
-    ruby script/driver -h <app-url> init
-
     
 ### Set database tables to use UTF-8
 
@@ -124,9 +117,6 @@ twitter data:
     
     stackato dbshell prezbuzz
     > ALTER TABLE tweets CONVERT TO CHARACTER SET utf8 collate utf8_unicode_ci;
-    > ALTER TABLE negative_words CONVERT TO CHARACTER SET utf8 collate utf8_unicode_ci;
-    > ALTER TABLE positive_words CONVERT TO CHARACTER SET utf8 collate utf8_unicode_ci;
-    > ALTER TABLE stop_words CONVERT TO CHARACTER SET utf8 collate utf8_unicode_ci;
     > quit
  
 ### Populate/Update twitter data:

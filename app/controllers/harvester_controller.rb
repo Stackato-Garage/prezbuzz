@@ -14,6 +14,7 @@ class HarvesterController < ApplicationController
        ["Rick<br>Perry", "22AA99"],
        ["Chris<br>Christie", "FFEE11"],
        ]
+
   @@url_base = 'http://search.twitter.com/search.json'
   def hello
     render :text => "hello"
@@ -401,6 +402,10 @@ class HarvesterController < ApplicationController
       }
     end
     def parseTweetScores(text)
+      return {:positiveWordCount => 0,
+                     :negativeWordCount => 0,
+                     :sentimentScore => 0
+      }
       text.gsub!(/\bhttp:\/\/.*?\/\S+/, "")
       text.gsub!(/\&\w+;/, "")
       text.gsub!(/[\#\@][a-zA-Z]\w*/, "")
@@ -416,6 +421,7 @@ class HarvesterController < ApplicationController
       qpart = words.map{|wd| "word = #{conn.quote(wd.downcase)}" }.join(" OR ")
       #$stderr.puts "separate words: <<#{qpart}>>"
       
+      posCount = negCount = 0
       query = "select count(*) from positive_words where " + qpart
       posCount = conn.select_rows(query)[0][0]
       
