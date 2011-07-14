@@ -120,16 +120,15 @@ the default service name.
 ### Set database tables to use UTF-8
 
 Change the default character set for MySQL tables to accomodate UTF-8
-twitter data. Use the mysql service name shown during 'stackato push'
-for the 'stackato dbshell ...' command:
+twitter data: 
     
-    stackato dbshell prezbuzz mysql-<id>
+    stackato dbshell prezbuzz
     > ALTER TABLE tweets CONVERT TO CHARACTER SET utf8 collate utf8_unicode_ci;
     > ALTER TABLE negative_words CONVERT TO CHARACTER SET utf8 collate utf8_unicode_ci;
     > ALTER TABLE positive_words CONVERT TO CHARACTER SET utf8 collate utf8_unicode_ci;
     > ALTER TABLE stop_words CONVERT TO CHARACTER SET utf8 collate utf8_unicode_ci;
     > quit
-
+ 
 ### Populate/Update twitter data:
 
 The current implementation of Prezbuzz requires data updates to be
