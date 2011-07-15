@@ -13,12 +13,13 @@ end
 
 class Wrapper
   attr_reader :tweets, :numCandidates, :candidateID, :lastStopTime
-  def initialize(host, port, verbose=false)
-    @verbose = verbose
+  def initialize(options)
     @nextPage = nil
     @problemCount = 0
-    @host = host
-    @port = port
+    @host = options[:host]
+    @port = options[:port]
+    @verbose = options[:verbose]
+    @appName = options[:appname]
   end
   
   def http_get(path, params=nil)
@@ -38,7 +39,7 @@ class Wrapper
         $stderr.puts "Error in http_get #{@host}:#{@port}/#{url}: #{$!}"
 	raise if @host.index("stackato").nil?
         $stderr.puts "Try restarting stackato..."
-        system("stackato restart prezbuzz")
+        system("stackato restart #{@appName}")
         # system("stackato target api.stackato.activestate.com && stackato login stackato restart prezbuzz")
       end
       i += 1
@@ -176,6 +177,7 @@ if __FILE__ == $0
   require 'optparse'
   options = {:verbose=>false,
 	     :host => 'localhost',
+	     :appname => 'rails-prezbuzz',
 	     :port => 80}
   OptionParser.new do |opts|
     opts.banner = "Usage: $0 [options] (init|update)"
@@ -188,9 +190,12 @@ if __FILE__ == $0
     opts.on("-p", "--port PORT", "Port") do |port|
       options[:port] = port
     end
+    opts.on("-a", "--appname APPNAME", "AppName") do |s|
+      options[:appname] = s
+    end
   end.parse!
 
-  w = Wrapper.new(options[:host], options[:port], options[:verbose])
+  w = Wrapper.new(options)
   #print "ARGV:" ; p ARGV ; print "\n"
   #print "options:" ; p options ; print "\n"
   case  ARGV[0]
