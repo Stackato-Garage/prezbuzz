@@ -20,50 +20,6 @@ class HarvesterController < ApplicationController
     render :text => "hello"
   end
   
-  def initApp
-    Candidate.delete(:all)
-    if Meta.count == 0
-      Meta.create(:processTime => (Time.now - 6.hours).utc)
-      self.reload(false)
-      self.loadSentimentWords
-      self.stopWords(false)
-    end
-    render :text => Meta.find(:first).processTime.utc
-  end
-  
-  def reload(doRender=true)
-    Candidates.each do |line, color|
-      fname, lname = line.split("<br>")
-      Candidate.create({:firstName => fname, :lastName => lname, :color => color})
-    end
-    if doRender
-      render :text => Candidate.count
-    end
-  end
-  
-  def stopWords(doRender=true)
-    File.open(File.expand_path("../stopWords.txt", __FILE__), "r") do |fd|
-      fd.readlines.map{|s|s.chomp}.each { |wd| StopWord.create(:word => wd) }
-    end
-    if doRender
-      render :text => StopWord.count
-    end
-  end
-  
-  def loadSentimentWords
-    [["../../../db/sentiment/positive-words.txt", PositiveWord],
-     ["../../../db/sentiment/negative-words.txt", NegativeWord]].each do |relPath, cls|
-      File.open(File.expand_path(relPath, __FILE__), "r") do |fd|
-        fd.readlines.each do |wd|
-          if wd[0] == ';'
-            next
-          end
-          cls.create(:word => wd.chomp)
-        end
-      end
-    end
-  end
-  
   def setTrackTime(doRender=true)
     trackTimeRecord = Meta.find(:first)
     if trackTimeRecord.nil?
@@ -160,6 +116,8 @@ class HarvesterController < ApplicationController
     end
     render :text => candidateID
   end
+  
+  private
   
   class MyLogger
     attr_accessor :level
@@ -387,9 +345,14 @@ class HarvesterController < ApplicationController
       return madeChange ? pieces.join("") : text
     end
     
+    # Note on this regex: match a single '\s' before \Z in that last ((?:...|\s)*)
+    # piece, not \s+. With the \s+,
+    # Ruby and Python take a long time to match a pattern like this,
+    # Perl and PHP find it instantly, and JS complains that the regex
+    # is too complex.
     @@tweetParser = /\A(\s*(?:(?:RT\b[\s:]*)?(?:@[a-zA-Z][\w\-.]*[,:\s]*))*)
                      (.*?)
-                     ((?:http:\/\/.*?\/\S+|[\#\@][a-zA-Z][\w\-.]*|\s+)*)\Z/mx
+                     ((?:http:\/\/.*?\/\S+|[\#\@][a-zA-Z][\w\-.]*|\s)*)\Z/mx
     def parseTweet(text)
       m = @@tweetParser.match(text)
       if m.nil?
@@ -406,6 +369,8 @@ class HarvesterController < ApplicationController
                      :negativeWordCount => 0,
                      :sentimentScore => 0
       }
+    end
+    def parseTweetScoresWhenNeeded(text)
       text.gsub!(/\bhttp:\/\/.*?\/\S+/, "")
       text.gsub!(/\&\w+;/, "")
       text.gsub!(/[\#\@][a-zA-Z]\w*/, "")
