@@ -25,8 +25,12 @@ See the file LICENSE.txt for licensing information.
     <%= stylesheet_link_tag 'candidateBuzz' %>
     <script type="text/javascript" >
       //<![CDATA[
-      var intervalCandidatePosnTweetCounts, clickColumnToDataColumn;
-      var candidateNames, isoStartDates, gEndDate;
+      var intervalCandidatePosnTweetCounts,
+          clickColumnToDataColumn,
+	  candidateNames,
+	  gEndDate,
+	  gNumRows,
+	  isoStartDates;
       if (typeof(console) == "undefined") console = {
         log: function(msg) {
           //document.getElementById("console").value = msg;
@@ -35,7 +39,6 @@ See the file LICENSE.txt for licensing information.
       function drawVisualization() {
         intervalCandidatePosnTweetCounts = [];
         candidateNames = [];
-        candidateAvatars = [];
         isoStartDates = [];
         gEndDate = "<%= @isoFinalEndDate %>";
         gNumRows = <%= @intervalInfo.size %>;
@@ -53,7 +56,6 @@ See the file LICENSE.txt for licensing information.
             fullName = "<%= "#{candidate.firstName} #{candidate.lastName}"%>";
             data.addColumn('number', fullName)
             candidateNames.push(fullName);
-            candidateAvatars.push("/images/" + lastName + ".jpg");
             colors_for_candidates.push("#<%=candidate.color%>")
             clickColumnToDataColumn[clickCol] = dataCol;
             clickCol += 1
