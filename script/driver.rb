@@ -27,11 +27,15 @@ class Wrapper
     i = 0
     while true
       begin
-        return http.get("#{path}?".concat(params.collect { |k,v| "#{k}=#{CGI::escape(v.to_s)}" }.join('&'))) if not params.nil?
-        return http.get(path)
+        if not params.nil?
+          url = "#{path}?" + params.collect { |k,v| "#{k}=#{CGI::escape(v.to_s)}" }.join('&')
+	else
+	  url = path
+	end
+	return http.get(url)
       rescue
         raise if i >= 4
-        $stderr.puts "Error in http_get #{@host}:#{@port}#{path}: #{$!}"
+        $stderr.puts "Error in http_get #{@host}:#{@port}/#{url}: #{$!}"
 	raise if @host.index("stackato").nil?
         $stderr.puts "Try restarting stackato..."
         system("stackato restart prezbuzz")
