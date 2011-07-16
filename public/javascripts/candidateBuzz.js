@@ -63,7 +63,6 @@ var processPayload = function(hParts, text) {
 
 // Now setup the json tweet stuff
 var getWordCloudCallback = function(json) {
-    //alert("about to build cloud from " + json.length + " iterms")
     var wordCloudDiv = document.getElementById("word_cloud");
     while (wordCloudDiv.firstChild) {
         wordCloudDiv.removeChild(wordCloudDiv.firstChild);

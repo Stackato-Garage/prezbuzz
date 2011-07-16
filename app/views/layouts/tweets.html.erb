@@ -9,402 +9,61 @@ See the file LICENSE.txt for licensing information.
 <head>
   <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
   <title>CandidateBuzz</title>
-  <% if defined? @maxSize %>
-    <%= stylesheet_link_tag 'jquery.jscrollpane' %>
-    <script type="text/javascript" src="http://code.jquery.com/jquery-1.6.1.min.js"></script>
-    <script type="text/javascript" src="http://www.google.com/jsapi"></script>
-    <script type="text/javascript">
-      google.load('visualization', '1', {packages: ['corechart']});
-    </script>
-    <%= javascript_include_tag 'jqcloud-0.1.8.js' %>
-    <%= stylesheet_link_tag 'jqcloud' %>
-    <%= javascript_include_tag 'jquery.mousewheel' %>
-    <%= javascript_include_tag 'jquery.jscrollpane.min' %>
-    <%= javascript_include_tag 'jquery.simplemodal.1.4.1.min' %>
-    <%= javascript_include_tag 'candidateBuzz' %>
-    <%= stylesheet_link_tag 'candidateBuzz' %>
-    <script type="text/javascript" >
-      //<![CDATA[
-      var intervalCandidatePosnTweetCounts,
-          clickColumnToDataColumn,
-	  candidateNames,
-	  gEndDate,
-	  gNumRows,
-	  isoStartDates;
-      if (typeof(console) == "undefined") console = {
-        log: function(msg) {
-          //document.getElementById("console").value = msg;
-        }
-      };
-      function drawVisualization() {
-        intervalCandidatePosnTweetCounts = [];
-        candidateNames = [];
-        isoStartDates = [];
-        gEndDate = "<%= @isoFinalEndDate %>";
-        gNumRows = <%= @intervalInfo.size %>;
-        //alert("In drawVisualization, intervalCandidatePosnTweetCounts = " + intervalCandidatePosnTweetCounts);
-
-        // Create and populate the data table.
-        var data = new google.visualization.DataTable(); // Not same as the "dataTable" template parameter
-        data.addColumn('string', 'month');
-        var fullName, clickCol = 0, dataCol = 0;
-        var colors_for_candidates = [];
-        clickColumnToDataColumn = [];
-        <% @candidates.each do |candidate| %>
-          <% if ! @candidates_to_drop[candidate.id]  %>
-            lastName = "<%= "#{candidate.lastName}" %>";
-            fullName = "<%= "#{candidate.firstName} #{candidate.lastName}"%>";
-            data.addColumn('number', fullName)
-            candidateNames.push(fullName);
-            colors_for_candidates.push("#<%=candidate.color%>")
-            clickColumnToDataColumn[clickCol] = dataCol;
-            clickCol += 1
-          <% end %>
-          dataCol += 1
-        <% end %>
-        <% @intervalInfo.each do |interval|
-          num_tweets_by_candidate = interval[:num_tweets_by_candidate]
-          startDate = interval[:startDate]
-          %>
-          isoStartDates.push("<%= startDate %>");
-          <% filteredCandidates = @candidates.reject{|candidate| @candidates_to_drop.has_key?(candidate.id)} %>
-          <%= "/*filteredCandidates info: \n #{filteredCandidates}\n */" %>
-          data.addRow([ "<%= startDate.to_time.localtime.strftime(@formatTimes[0]) %>",
-          <%= filteredCandidates.map { |candidate| num_tweets_by_candidate[candidate.id]}.join(", ") %>]);
-          <% @formatTimes.shift if @formatTimes.size > 1 %>
-          var thisCandidatePosnTweetCounts = [];
-          intervalCandidatePosnTweetCounts.push(thisCandidatePosnTweetCounts);
-          <% @candidates.each do |candidate|  %>
-            <% if ! @candidates_to_drop[candidate.id]  %>
-              thisCandidatePosnTweetCounts.push(<%= num_tweets_by_candidate[candidate.id] %>)
-            <% end %>
-          <% end %>
-        <% end %>
-       
-        // Create and draw the visualization.
-        var chart = new google.visualization.ColumnChart(document.getElementById('visualization'));
-        chart.draw(data, {curveType: "function",
-                        enableEvents: true,
-                          title: "Tweets per hour",
-                          colors: colors_for_candidates,
-                        width: 1050, height: 400,
-                        vAxis: {maxValue: <%= @maxSize %>}}
-                );
-        var pluralizeWord = function(word, count) {
-          if (count == 1) return word;
-          return word + "s";
-        };
-        var mouseEventHandler = function() {
-          var dataColumn, clickColumn, selection = chart.getSelection()[0];
-          if (!selection) {
-              alert("clickHandler: no selection!... ");
-            return;
-          }
-          row = selection.row;
-          clickColumn = selection.column - 1; // col 0 for date
-          dataColumn = clickColumnToDataColumn[clickColumn];
-          var candidateName = candidateNames[clickColumn];
-          $("body").attr("class", candidateName);
-          
-          loadCandidateContent(clickColumn, row);
-          
-          try {
-            getTweets(row, dataColumn);
-          } catch(ex) {
-            alert("prob in getTweets: " + ex)
-          }
-        };
-        google.visualization.events.addListener(chart, 'select', mouseEventHandler);
-        initSidebar();
-
-        var olderLinksElement = document.getElementById('button_time_back');
-        <% if @hasLinkInfo[:prevLinks] %>
-          setPrevLink(olderLinksElement);
-          $('#button_time_back').attr('disabled', '');
-        <% else %>
-          checkOlderLinksID = setInterval(checkOlderLinks, 60 * 1000);
-        <% end %>
-        var newerLinksElement = document.getElementById('button_time_forward');
-        <% if @hasLinkInfo[:nextLinks] %>
-          setNextLink(newerLinksElement);
-          $('#button_time_forward').attr('disabled', '');
-        <% else %>
-          checkNewerLinksID = setInterval(checkNewerLinks, 60 * 1000);
-        <% end %>
-        
-        var showAnyCandidate = function() {
-          // Load the most recent tweets that are available for a candidate,
-          // starting with the first in the list.
-          // We should really update this based on the last candidate looked at,
-          // and see if we got to this page from an earlier page or a later one.
-          var clickNum, intervalNum;
-          for (clickNum = 0; clickNum < clickColumnToDataColumn.length; clickNum++) {
-              for (intervalNum = 3; intervalNum >= 0; intervalNum--) {
-                  if (intervalCandidatePosnTweetCounts[intervalNum][clickNum] > 0) {
-                      loadCandidateContent(clickNum, intervalNum);
-                      getTweets(intervalNum, clickNum);
-                      return;
-                  }
-              }
-          }
-        }
-        
-         $(document).ready(function() {
-          try {
-            <% if @suggestedCandidate.nil? %>
-              showAnyCandidate();
-            <% else %>
-              // The controller specifies which candidate to load.
-              var candidateNum = <%= @suggestedCandidate %>;
-              // Figure out the click num for this
-              for (clickNum = 0; clickNum < clickColumnToDataColumn.length; clickNum++) {
-                if (clickColumnToDataColumn[clickNum] + 1 == candidateNum) {
-                  for (intervalNum = 3; intervalNum >= 0; intervalNum--) {
-                    if (intervalCandidatePosnTweetCounts[intervalNum][clickNum] > 0) {
-                        // loadCandidateContent - uses click columns
-                        loadCandidateContent(clickNum, intervalNum);
-                        // getTweets - uses data columns.
-                        getTweets(intervalNum, clickColumnToDataColumn[clickNum]);
-                        return;
-                    }
-                  }
-                }
-              }
-              // Still here? Do the default action
-              showAnyCandidate();
-            <% end %>
-          } catch(ex) {
-            alert("prob in drawVisualization: get first batch of tweets " + ex);
-          }
-        });
-      }
-      var getTotalTweetCount = function(clickColumn, row) {
-          if (row === undefined) {
-            count = 0;
-            var len = intervalCandidatePosnTweetCounts.length;
-            for (var i = 0; i < len ; i++) {
-              count += intervalCandidatePosnTweetCounts[i][clickColumn];
-            }
-            return count;
-          } else {
-            return intervalCandidatePosnTweetCounts[row][clickColumn];
-          }
-      };
-      
-      var loadCandidateContent = function(clickColumn, row) {
-        var candidateName = candidateNames[clickColumn];
-        var lastName = candidateName.split(/[\s,]+/)[1];
-        
-        // set body class
-        $("body").attr("class", candidateName);
-        
-        // update candidate bar
-        var candidateImg = '<img src="/images/' + lastName + '.jpg" >'
-        $('div#buzz_candidate_img').html(candidateImg);
-        
-        var mmToMonth = new Array("Jan", "Feb", "Mar", "Apr", "May", "Jun", "July", "Aug", "Sep", "Oct", "Nov", "Dec");
-
-        var getTimeParts = function(dt) {
-          var hour = dt.getHours();
-          var ap;
-          if (hour > 12) {
-              hour = hour - 12;
-              ap = "pm";
-          } else if (hour == 12) {
-              ap = "pm";
-          } else {
-              ap = "am";
-              if (hour == 0) {
-                  hour = 12;
-              }
-          }
-          return [hour, ap];
-        }
-
-	var getSafeDate = function(timeStamp) {
-	    // Do it this way for Safari & IE.
-	    // Mozilla & Chrome js can parse ISO 8601 formats
-	    var m = /^(\d\d\d\d)-(\d\d)-(\d\d)T(\d\d:\d\d:\d\d)([\-\+])(\d\d):(\d\d)/.exec(timeStamp);
-	    if (!m) return new Date(timeStamp);
-	    var yr = m[1], mon=m[2], day=m[3], hrMinSec=m[4], 
-	        sign=m[5], offsetHour=m[6], offsetMin=m[7];
-	    var timeStr = (yr + "/" + mon + "/" + day
-	                   + " "
-	                   + hrMinSec
-			   + " UTC"
-			   + sign
-			   + offsetHour
-			   + offsetMin);
-	    return new Date(timeStr);
-	};
-
-        var showLocalDate = function(startTime, endTime)
-        {
-            var sdt = getSafeDate(startTime);
-            var s_mm = mmToMonth[sdt.getMonth()];
-            var s_hour, s_ap;
-	    var parts = getTimeParts(sdt);
-	    s_hour = parts[0];
-	    s_ap = parts[1];
-
-            var edt = getSafeDate(endTime);
-            var e_mm = mmToMonth[edt.getMonth()];
-            var e_hour, e_ap;
-	    parts = getTimeParts(edt);
-	    e_hour = parts[0];
-	    e_ap = parts[1];
-	    
-	    var timeString;
-            if (sdt.getDate() == edt.getDate() || edt.getHours() == 0) {
-                timeString = ("on "
-                              + s_mm
-                              + " "
-                              + sdt.getDate()
-                              + ", "
-                              + sdt.getFullYear()
-                              + " @ "
-                              + s_hour
-                              + ":00");
-                if (s_ap == e_ap) {
-                    timeString += (" - "
-                                   + e_hour
-                                   + ":00 "
-                                   + e_ap);
-                } else {
-                    timeString += (s_ap
-                                   + " - "
-                                   + e_hour
-                                   + ":00 "
-                                   + " "
-                                   + e_ap);
-                }
-            } else {
-                // Spans different days
-                timeString = ("on "
-                              + s_mm
-                              + " "
-                              + sdt.getDate()
-                              + ", "
-                              + sdt.getFullYear()
-                              + ", "
-                              + s_hour
-                              + ":00"
-                              + s_ap
-                              + " - "
-                              + e_mm
-                              + " "
-                              + edt.getDate()
-                              + ", "
-                              + e_hour
-                              + ":00 "
-                              + " "
-                              + e_ap);
-            }
-            return timeString;
-        }
-    	var startTime, endTime;
-        if ((row) === "undefined") {
-            startTime = isoStartDates[0];
-            endTime = gEndDate;
-        } else {
-            startTime = isoStartDates[row];
-            endTime = getEndDate(row);
-        }
-        var startTime = typeof(row) == "undefined" ? isoStartDates[0] : isoStartDates[row];
-        $('div#buzz_candidate span#tweet_count').html(getTotalTweetCount(clickColumn, row));
-        $('div#buzz_candidate div#buzz_candidate_details strong').html(candidateName);
-        $('div#buzz_candidate div#buzz_candidate_details span#time').html(showLocalDate(startTime, endTime));
-      }
-
-      google.setOnLoadCallback(drawVisualization);
-      
-      var checkOlderLinksID = 0;
-      var checkNewerLinksID = 0;
-      
-      function hasActiveLink(id) {
-        var element = document.getElementById(id);
-        if (!element) return false;
-        return element.hasAttribute("hasLink");
-      }
-      var checkOlderLinksURL = "<%= url_for :controller => 'tweets', :action => 'hasOlderPosts'  %>";
-      var updateOlderLinks = function(result) {
-        if (result) {
-          clearInterval(checkOlderLinksID);
-          checkOlderLinksID = 0;
-          var olderLinksElement = document.getElementById('button_time_back');
-	  setPrevLink(olderLinksElement);
-        }
-      };
-      
-      var setPrevLink = function(olderLinksElement) {
-          olderLinksElement.setAttribute("hasLink", 1);
-          olderLinksElement.innerHTML = '<%= link_to "&laquo; Older".html_safe, :controller => "tweets", :action => "index", :startDateISO => @linkInfo[:prevLinks][:startDate], :endDateISO   => @linkInfo[:prevLinks][:endDate]  %>';
-      };
-      var checkOlderLinks = function() {
-        jQuery.getJSON(checkOlderLinksURL,
-                       {startDateISO:isoStartDates[0],
-                        endDateISO: gEndDate},
-                        updateOlderLinks);
-      };
-      
-      var checkNewerLinksURL = "<%= url_for :controller => 'tweets', :action => 'hasNewerPosts'  %>";
-      var updateNewerLinks = function(result) {
-        if (result) {
-          clearInterval(checkNewerLinksID);
-          checkNewerLinksID = 0;
-          var newerLinksElement = document.getElementById('button_time_forward');
-	  setNextLink(newerLinksElement);
-        }
-      };
-      var setNextLink = function(newerLinksElement) {
-          newerLinksElement.setAttribute("hasLink", 1);
-          newerLinksElement.innerHTML = '<%= link_to "Newer &raquo;".html_safe, :controller => "tweets", :action => "index", :startDateISO => @linkInfo[:nextLinks][:startDate], :endDateISO   => @linkInfo[:nextLinks][:endDate]  %>';
-      };
-      var checkNewerLinks = function() {
-        jQuery.getJSON(checkNewerLinksURL,
-                       {startDateISO:isoStartDates[0],
-                        endDateISO: gEndDate},
-                        updateNewerLinks);
-      };
-      
-      var getEndDate = function(row) {
-        if (row < gNumRows - 1) {
-          return isoStartDates[row  + 1]
-        } else {
-          return gEndDate;
-        }
-      };
-      
-      var getTweets = function(row, dataColumn) {
-        var tweets_url = "<%= url_for :controller => 'tweets', :action => 'getTweets'  %>";
-        var wordCloud_url = "<%= url_for :controller => 'tweets', :action => 'getWordCloud'  %>";
-	var startDate, endDate;
-	if (typeof(row) != "undefined") {
-	  startDate = isoStartDates[row];
-          endDate = getEndDate(row);
-	} else {
-	  startDate = isoStartDates[0];
-          endDate = gEndDate;
-	}
-        var localCallback = function(json) {
-          getTweetCallback(json);
-          setTimeout(function() {
-            jQuery.getJSON(wordCloud_url,
-                      { candidateNum:dataColumn + 1, startDateISO:isoStartDates[0],
-                        endDateISO: gEndDate
-                      },
-                      getWordCloudCallback);
-          }, 100);
-        };
-        jQuery.getJSON(tweets_url,
-                  { candidateNum:dataColumn + 1, startDateISO:startDate,
-                    endDateISO: endDate
-                  },
-                  localCallback);
-      };
-      // ]]>
-    </script>
-  <% end %>
+  <%= stylesheet_link_tag 'jquery.jscrollpane' %>
+  <script type="text/javascript" src="http://code.jquery.com/jquery-1.6.1.min.js"></script>
+  <script type="text/javascript" src="http://www.google.com/jsapi"></script>
+  <script type="text/javascript">
+    google.load('visualization', '1', {packages: ['corechart']});
+  </script>
+  <%= javascript_include_tag 'jqcloud-0.1.8.js' %>
+  <%= stylesheet_link_tag 'jqcloud' %>
+  <%= javascript_include_tag 'jquery.mousewheel' %>
+  <%= javascript_include_tag 'jquery.jscrollpane.min' %>
+  <%= javascript_include_tag 'jquery.simplemodal.1.4.1.min' %>
+  <%= javascript_include_tag 'candidateBuzz' %>
+  <%= javascript_include_tag 'buzzInfo' %>
+  <%= stylesheet_link_tag 'candidateBuzz' %>
+  <script type="text/javascript" >
+    //<![CDATA[
+    /*
+     * Rails template variables:
+     * @startDate: first start time
+     * @endDate: last start time + 1 (or last end time)
+     * @hasData: boolean
+     */
+    var buzzInfo = new BuzzInfo(); // Our main object
+    buzzInfo.checkNewerLinksURL = "<%= url_for :controller => 'tweets', :action => 'hasNewerPosts'  %>";
+    buzzInfo.checkOlderLinksURL = "<%= url_for :controller => 'tweets', :action => 'hasOlderPosts'  %>";
+    buzzInfo.getTweetsURL = "<%= url_for :controller => 'tweets', :action => 'getTweets'  %>";
+    buzzInfo.getWordCloudURL = "<%= url_for :controller => 'tweets', :action => 'getWordCloud'  %>";
+    buzzInfo.getChartURL = "<%= url_for :controller => 'tweets', :action => 'getChartInfo'  %>";
+    buzzInfo.gStartDate = '<%= @startDate %>'; //XXX: NOT USED
+    buzzInfo.gEndDate = '<%= @endDate %>';
+    buzzInfo.linkInfo = {
+      hasPrevLinks: "<%= @linkInfo[:hasPrevLinks] %>",
+      prevLinkStartDate: "<%= @linkInfo[:prevLinkStartDate] %>",
+      prevLinkEndDate: "<%= @linkInfo[:prevLinkEndDate] %>",
+      hasNextLinks: "<%= @linkInfo[:hasNextLinks] %>",
+      nextLinkStartDate: "<%= @linkInfo[:nextLinkStartDate] %>",
+      nextLinkEndDate: "<%= @linkInfo[:nextLinkEndDate] %>"
+    };
+    
+    var onloadHandler = function() {
+      buzzInfo.onLoad();
+      buzzInfo.updateLinkInfo();
+      <% if @hasData %>
+        jQuery.getJSON(buzzInfo.getChartURL,
+                      {startDateISO: buzzInfo.gStartDate,
+                       endDateISO: buzzInfo.gEndDate},
+                        function(results) { buzzInfo.processChart(results); });
+      <% else %>
+        alert("@hasData is false...");
+        // go update those next/prev links, and say there's no data here.
+      <% end %>
+    };
+    google.setOnLoadCallback(onloadHandler);
+    // ]]>
+  </script>
   <link href='http://fonts.googleapis.com/css?family=Paytone+One&subset=latin&v2' rel='stylesheet' type='text/css'>
 </head>
 <body>
@@ -433,10 +92,11 @@ This site will work much better if you enable JavaScript.
 
       <%= yield %>
 
-    <% if defined? @maxSize %>
     <div id="visualization"></div>
-      <div id="button_time_back" class="buzz_button_link" disabled="disabled">&laquo; Older</div>
-      <div id="button_time_forward" class="buzz_button_link" disabled="disabled">Newer &raquo;</div>
+      <div id="button_time_back" class="buzz_button_link" disabled="disabled"
+      align=><a onclick="buzzInfo.getPrevChart(); return 0">&laquo; Older</a></div>
+      <div id="button_time_forward" class="buzz_button_link" disabled="disabled"
+      ><a onclick="buzzInfo.getNextChart(); return 0">Newer &raquo;</a></div>
     </div>
     <div id="buzz_candidate">
 
@@ -445,7 +105,7 @@ This site will work much better if you enable JavaScript.
         </div>
             
         <div id="buzz_candidate_details">
-          <span id="tweet_count"></span> tweets about<br />
+          <span id="tweet_count"></span>about<br />
             <strong></strong>
             <br />
             <span id="time"></span>
@@ -470,7 +130,6 @@ This site will work much better if you enable JavaScript.
       </div>
     </div>
     
-<% end %>
   </div>
   <div id="help_content" class="basic-modal-content">
     <h3>CandidateBuzz Instructions</h3>
@@ -487,7 +146,7 @@ This site will work much better if you enable JavaScript.
   <script>
     $(document).ready(function() {
       var settings = {
-        showArrows: true,
+        showArrows: true
       };
       var holder = $('#buzz_tweets').jScrollPane(settings);
       $("#buzz_help").click(function(e) {

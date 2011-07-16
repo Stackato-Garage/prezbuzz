@@ -46,40 +46,90 @@ class TweetsController < ApplicationController
     render :text => hasNextTweet ? 1 : 0
   end
   
+  def calcLinkInfo(timeMetrics)
+    startDate = timeMetrics[:startDate]
+    delta = timeMetrics[:delta]
+    endDate = timeMetrics[:endDate]
+    @linkInfo = {
+      :hasPrevLinks => calcHasOlderPosts(timeMetrics),
+      :prevLinkStartDate => startDate - delta,
+      :prevLinkEndDate => startDate,
+      :hasNextLinks => calcHasNewerPosts(timeMetrics),
+      :nextLinkStartDate => endDate,
+      :nextLinkEndDate => endDate + delta,
+    }
+  end
+  
   def index
     timeMetrics = calcTimeMetrics()
-    @isoFinalEndDate = finalEndDate = timeMetrics[:finalEndDate]
+    @startDate = timeMetrics[:startDate]
+    @endDate = timeMetrics[:endDate]
+    calcLinkInfo(timeMetrics)
+    conn = Tweet.connection
+    @hasData = conn.select_rows("SELECT count(id) from tweets
+                     where publishedAt >= #{conn.quote(@startDate)}
+                           and publishedAt < #{conn.quote(@endDate)}")[0][0] > 0
+    respond_to do |format|
+      format.html # tweets.html.erb
+      format.xml  { render :xml => {
+          :startDate => @startDate,
+          :endDate   => @endDate,
+          :linkInfo => @linkInfo,
+          :hasData => @hasData,
+      }}
+    end
+  end
+
+  def getChartInfo
+    # This returns a big honking mess of json:
+    # *intervalInfo: [{
+    #   num_tweets_by_candidate: num,
+    # }]
+    # *candidates: [ { id:..., firstName:..., lastName:..., color:... } ]
+    # *candidates_to_drop: { candidateNum: true }
+    # *dateLabels: [ array of strings ], based on 
+    #      data.addRow([ "<%= startDate.to_time.localtime.strftime(@formatTimes[0]) %>",
+    #      <% @formatTimes.shift if @formatTimes.size > 1 %>
+    # ????isoStartDates: array of date starts
+    # *isoFinalEndDate: end of chart time
+    # *maxSize: maxSize
+    # *suggestedCandidate: id# or null
+    
+    timeMetrics = calcTimeMetrics()
+    calcLinkInfo(timeMetrics)
+    returnObj = { :linkInfo => @linkInfo }
+    returnObj[:isoFinalEndDate] = endDate = timeMetrics[:endDate]
     startDate = timeMetrics[:startDate]
-    endDate = timeMetrics[:endDate]
     delta = timeMetrics[:delta]
     intervalSize = timeMetrics[:intervalSize]
-    @intervalInfo = []
-    @formatTimes = ["%b %d %Y, %I:%M %p", "%I:%M %p"]
-    @candidates = Candidate.find(:all)
-    @linkInfo = {
-      :prevLinks  => { :startDate => startDate - delta, :endDate =>  startDate},
-      :nextLinks  => { :startDate => finalEndDate, :endDate =>  finalEndDate + delta},
-    }
-    @hasLinkInfo = {
-      :prevLinks  => calcHasOlderPosts(timeMetrics),
-      :nextLinks  => calcHasNewerPosts(timeMetrics),
-    }
+    formatTimes = ["%b %d %Y, %I:%M %p", "%I:%M %p"]
+    candidates = Candidate.find(:all)
+    returnObj[:candidates] = candidates.map{|c| {:id => c.id, :firstName => c.firstName, :lastName => c.lastName, :color => c.color}}
     conn = Tweet.connection
     rawTweetData = conn.select_rows("SELECT c.candidate_id, t.id, t.publishedAt
                      from tweets as t, candidates_tweets as c
                      where t.publishedAt >= #{conn.quote(startDate)}
-                           and t.publishedAt < #{conn.quote(finalEndDate)}
+                           and t.publishedAt < #{conn.quote(timeMetrics[:endDate])}
                            and c.tweet_id = t.id")
     baseStartDateI = startDate.to_i
     numIntervals = timeMetrics[:numIntervals]
-    @intervalInfo = Array.new(numIntervals)
+    intervalInfo = Array.new(numIntervals)
+    returnObj[:intervalInfo] = intervalInfo
     finalStartDate = startDate
     loadedTweets = {}
+    returnObj[:dateLabels] = dateLabels = []
+    #returnObj[:isoStartDates] = isoStartDates = []
+    
+    endDate = startDate
+    numTweetHashTemplate = Hash[*(candidates.map{|c| [c.id, 0]}.flatten)]
     numIntervals.times do |i|
       startDate = endDate
       endDate += intervalSize.seconds
-      @intervalInfo[i] = { :startDate => startDate, :endDate => endDate, :num_tweets_by_candidate => Hash.new(0),}
+      intervalInfo[i] = { :startDate => startDate, :endDate => endDate,
+                          :num_tweets_by_candidate => numTweetHashTemplate.clone,}
       loadedTweets[i] = {}#Hash.new([])
+      dateLabels << startDate.to_time.localtime.strftime(formatTimes[0])
+      formatTimes.shift if formatTimes.size > 1
     end
     startDate = finalStartDate
     
@@ -88,34 +138,36 @@ class TweetsController < ApplicationController
       interval = ((pubTime - startDate.to_i)/intervalSize.seconds).to_i
       loadedTweets[interval][candidateNum] = [] unless loadedTweets[interval].has_key?(candidateNum)
       loadedTweets[interval][candidateNum] << tweetId
-      @intervalInfo[interval][:num_tweets_by_candidate][candidateNum] += 1
+      intervalInfo[interval][:num_tweets_by_candidate][candidateNum] += 1
     end
     
     numIntervals.times do |i|
-      ivTweets = @intervalInfo[i][:num_tweets_by_candidate]
+      ivTweets = intervalInfo[i][:num_tweets_by_candidate]
       ivTweets.keys.each do | candidateNum  |
-        numDuplicates = countDuplicates(loadedTweets[i][candidateNum])
-        ivTweets[candidateNum] += numDuplicates
+        if loadedTweets[i].has_key?(candidateNum)
+          numDuplicates = countDuplicates(loadedTweets[i][candidateNum])
+          ivTweets[candidateNum] += numDuplicates
+        end
       end
     end
     
-    total_num_tweets_by_candidate = Hash[@candidates.map{|candidate| [candidate.id, 0]}]
-    @maxSize = 0
-    @intervalInfo.each do |iv|
+    total_num_tweets_by_candidate = Hash[candidates.map{|candidate| [candidate.id, 0]}]
+    maxSize = 0
+    intervalInfo.each do |iv|
       iv[:num_tweets_by_candidate].each do |candidateNum, count|
         total_num_tweets_by_candidate[candidateNum] += count
-        @maxSize = count if @maxSize < count
+        maxSize = count if maxSize < count
       end
     end
     candidateCutoff = params[:cutoff] || @@CANDIDATE_CUTOFF
-    @candidates_to_drop = {}
+    returnObj[:candidates_to_drop] = candidates_to_drop = {}
     if candidateCutoff != "none" && total_num_tweets_by_candidate.size > candidateCutoff
       counts = total_num_tweets_by_candidate.map{|k, v| [v,k]}.sort{|a,b| a[0] <=> b[0] }
       counts.slice(0, counts.size - candidateCutoff).each do |count, candidate|
         total_num_tweets_by_candidate[candidate] = -1
-        @candidates_to_drop[candidate] = true
+        candidates_to_drop[candidate] = true
       end
-      @intervalInfo.each do |iv|
+      intervalInfo.each do |iv|
         iv[:num_tweets_by_candidate].keys.each do |candidate|
           if total_num_tweets_by_candidate[candidate] == -1
             iv[:num_tweets_by_candidate][candidate] = nil #!!!
@@ -124,18 +176,17 @@ class TweetsController < ApplicationController
       end
     end
     data = findSessionData
-    if !data['candidateNum'].blank? && !@candidates_to_drop[data['candidateNum']]
-      @suggestedCandidate = data['candidateNum'].to_i
+    if !data['candidateNum'].blank? && !candidates_to_drop[data['candidateNum']]
+      suggestedCandidate = data['candidateNum'].to_i
     else
-      @suggestedCandidate = nil
+      suggestedCandidate = nil
     end
+    returnObj[:suggestedCandidate] = suggestedCandidate
+    returnObj[:maxSize] = maxSize
+    #$stderr.puts(">>>> #{returnObj.to_json}")
     respond_to do |format|
-      format.html # index.html.erb
-      format.xml  { render :xml => {
-          :intervalInfo => @intervalInfo,
-          :candidates => @candidates,
-          :candidates_to_drop => @candidates_to_drop,
-      }}
+      format.html { render :text => returnObj.to_json }
+      format.xml  { render :xml => returnObj }
     end
   end
 
@@ -309,74 +360,6 @@ class TweetsController < ApplicationController
     #end
     render :text => retStr
   end
-
-  def indexFullTweets
-    startDateISO = params[:startDateISO] # YYYY-MM-DD
-    endDateISO = params[:endDateISO]
-    @tweets = Tweet.all
-    if startDateISO.nil? || endDateISO.nil?
-      now = DateTime.now.utc
-      endDate = DateTime.new(now.year, now.month, now.day, now.hour) + 1.hour
-      startDate = endDate - 4.hours
-      numIntervals = 4
-      intervalSize = 1.hour
-    else
-      startDate = DateTime.parse(startDateISO, true)
-      endDate = DateTime.parse(endDateISO, true)
-      numIntervals = 4
-      intervalSize = (endDate.to_i - startDate.to_i).seconds
-    end
-    finalEndDate = endDate
-    endDate = startDate
-    @intervalInfo = []
-    @username_from_tweet = {}
-    @candidates = Candidate.find(:all)
-    while true
-      startDate = endDate
-      endDate += intervalSize
-      break if startDate >= finalEndDate
-    
-      # startDate and endDate are DateTime objects
-      infoBlock = {}
-      tweets_by_candidate = {}
-      @candidates.each do |candidate|
-        tweets_by_candidate[candidate] = candidate.tweets.find(:all,
-                         :conditions => ['publishedAt >= ? and publishedAt < ?',
-                                         startDate, endDate])
-        tweets_by_candidate[candidate].each do |tweet|
-          @username_from_tweet[tweet.id] = begin TwitterUser.find(tweet.twitter_user_id).userName rescue $! end
-        end
-      end
-      @intervalInfo.push({
-        :startDate => startDate,
-        :endDate => endDate,
-        :tweets_by_candidate => tweets_by_candidate
-      })
-    end
-    respond_to do |format|
-      format.html # index.html.erb
-      format.xml  { render :xml => @tweets }
-    end
-  end
-
-  # GET /tweets/1
-  # GET /tweets/1.xml
-  def show
-    id = params[:id]
-    if id == "getWordCloud"
-      getWordCloud
-      return
-    elsif id == "getTweets"
-      getTweets
-      return
-    end
-    @tweet = Tweet.find(params[:id])
-
-    respond_to do |format|
-      format.html # show.html.erb
-      format.xml  { render :xml => @tweet }
-    end
-  end
   
   private
 
@@ -395,19 +378,13 @@ class TweetsController < ApplicationController
   end
   
   def calcHasOlderPosts(timeMetrics)
-    startDate = timeMetrics[:startDate]
-    prevStartDate = startDate - timeMetrics[:delta]
-    hasPrevTweet = Tweet.first(:conditions => ["publishedAt >= ? and publishedAt < ? ",
-                                               prevStartDate, startDate])
-    return hasPrevTweet
+    return Tweet.first(:conditions => ["publishedAt < ? ",
+                                       timeMetrics[:startDate]])
   end
   
   def calcHasNewerPosts(timeMetrics)
-    finalEndDate = timeMetrics[:finalEndDate]
-    nextFinalEndDate = finalEndDate + timeMetrics[:delta]
-    hasNextTweet = Tweet.first(:conditions => ["publishedAt >= ? and publishedAt < ? ",
-                                               finalEndDate, nextFinalEndDate])
-    return hasNextTweet
+    return Tweet.first(:conditions => ["publishedAt >= ? ",
+                                       timeMetrics[:endDate]])
   end
   
   def calcTimeMetrics
@@ -425,13 +402,11 @@ class TweetsController < ApplicationController
       numIntervals = 4
       intervalSize = ((endDate.to_time.to_i - startDate.to_time.to_i)/numIntervals).seconds.to_i
     end
-    finalEndDate = endDate
-    endDate = startDate
-    delta = (finalEndDate.to_i - startDate.to_i).seconds
+    $stderr.puts("calcTimeMetrics: intervalSize:#{intervalSize}")
+    delta = (endDate.to_i - startDate.to_i).seconds
     return {
       :startDate => startDate,
       :endDate => endDate,
-      :finalEndDate => finalEndDate,
       :numIntervals => numIntervals,
       :intervalSize => intervalSize,
       :delta => delta,
