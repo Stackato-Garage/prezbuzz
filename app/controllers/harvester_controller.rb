@@ -1,7 +1,7 @@
 class HarvesterController < ApplicationController
   
   Candidates =  [["Barack<br>Obama",  "3366CC"],
-       ["Michele<br>Bachmann", "F02288"], # was DC3912q
+       ["Michele<br>Bachmann", "DC3912"], # give up on"F02288"]
        ["Herman<br>Cain", "FF9900"],
        ["Newt<br>Gingrich", "109618"],
        ["Jon<br>Huntsman", "990099"],
