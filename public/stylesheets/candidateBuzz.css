@@ -239,17 +239,17 @@ body.Obama #buzz_details {
 }
 
 body.Bachmann div#buzz_candidate {
-     background-color: #F02288;
+     background-color: #DC3912;
 }
 body.Bachmann #buzz_details {
      background: #FFFFFF;
-     background: -moz-linear-gradient(top, #F02288 0%, #000 100%);
-     background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#F02288), color-stop(100%,#000 ));
-     background: -webkit-linear-gradient(top, #F02288 0%,#000  100%);
-     background: -o-linear-gradient(top, #F02288 0%,#000 100%);
-     background: -ms-linear-gradient(top, #F02288 0%,#000  100%);
-     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#F02288', endColorstr='#000 ',GradientType=0 );
-     background: linear-gradient(top, #F02288 0%,#000  100%);
+     background: -moz-linear-gradient(top, #DC3912 0%, #000 100%);
+     background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#DC3912), color-stop(100%,#000 ));
+     background: -webkit-linear-gradient(top, #DC3912 0%,#000  100%);
+     background: -o-linear-gradient(top, #DC3912 0%,#000 100%);
+     background: -ms-linear-gradient(top, #DC3912 0%,#000  100%);
+     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#DC3912', endColorstr='#000 ',GradientType=0 );
+     background: linear-gradient(top, #DC3912 0%,#000  100%);
 }
 
 body.Cain div#buzz_candidate {
