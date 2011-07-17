@@ -176,6 +176,7 @@ Date.ext.locales['en-AU'] = Date.ext.locales['en-GB'];
  * \arg \%h - same as %b
  * \arg \%H - hour as a decimal number using a 24-hour clock (range 00 to 23)
  * \arg \%I - hour as a decimal number using a 12-hour clock (range 01 to 12)
+ * \arg \%i - like %I, but single-digit values aren't zero-padded (range 1 to 12)
  * \arg \%j - day of the year as a decimal number (range 001 to 366)
  * \arg \%m - month as a decimal number (range 01 to 12)
  * \arg \%M - minute as a decimal number
