@@ -20,6 +20,7 @@ See the file LICENSE.txt for licensing information.
   <%= javascript_include_tag 'jquery.mousewheel' %>
   <%= javascript_include_tag 'jquery.jscrollpane.min' %>
   <%= javascript_include_tag 'jquery.simplemodal.1.4.1.min' %>
+  <%= javascript_include_tag 'strftime-min.js' %>
   <%= javascript_include_tag 'candidateBuzz' %>
   <%= javascript_include_tag 'buzzInfo' %>
   <%= stylesheet_link_tag 'candidateBuzz' %>
@@ -57,7 +58,7 @@ See the file LICENSE.txt for licensing information.
                        endDateISO: buzzInfo.gEndDate},
                         function(results) { buzzInfo.processChart(results); });
       <% else %>
-        alert("@hasData is false...");
+        //alert("@hasData is false...");
         // go update those next/prev links, and say there's no data here.
       <% end %>
     };

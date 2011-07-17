@@ -83,14 +83,10 @@ class TweetsController < ApplicationController
   def getChartInfo
     # This returns a big honking mess of json:
     # *intervalInfo: [{
-    #   num_tweets_by_candidate: num,
+    #   num_tweets_by_candidate: num, startDate: isoDateTime, endDate: isoDateTime
     # }]
     # *candidates: [ { id:..., firstName:..., lastName:..., color:... } ]
     # *candidates_to_drop: { candidateNum: true }
-    # *dateLabels: [ array of strings ], based on 
-    #      data.addRow([ "<%= startDate.to_time.localtime.strftime(@formatTimes[0]) %>",
-    #      <% @formatTimes.shift if @formatTimes.size > 1 %>
-    # ????isoStartDates: array of date starts
     # *isoFinalEndDate: end of chart time
     # *maxSize: maxSize
     # *suggestedCandidate: id# or null
@@ -102,7 +98,6 @@ class TweetsController < ApplicationController
     startDate = timeMetrics[:startDate]
     delta = timeMetrics[:delta]
     intervalSize = timeMetrics[:intervalSize]
-    formatTimes = ["%b %d %Y, %I:%M %p", "%I:%M %p"]
     candidates = Candidate.find(:all)
     returnObj[:candidates] = candidates.map{|c| {:id => c.id, :firstName => c.firstName, :lastName => c.lastName, :color => c.color}}
     conn = Tweet.connection
@@ -117,8 +112,6 @@ class TweetsController < ApplicationController
     returnObj[:intervalInfo] = intervalInfo
     finalStartDate = startDate
     loadedTweets = {}
-    returnObj[:dateLabels] = dateLabels = []
-    #returnObj[:isoStartDates] = isoStartDates = []
     
     endDate = startDate
     numTweetHashTemplate = Hash[*(candidates.map{|c| [c.id, 0]}.flatten)]
@@ -128,8 +121,6 @@ class TweetsController < ApplicationController
       intervalInfo[i] = { :startDate => startDate, :endDate => endDate,
                           :num_tweets_by_candidate => numTweetHashTemplate.clone,}
       loadedTweets[i] = {}#Hash.new([])
-      dateLabels << startDate.to_time.localtime.strftime(formatTimes[0])
-      formatTimes.shift if formatTimes.size > 1
     end
     startDate = finalStartDate
     

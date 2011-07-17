@@ -78,17 +78,20 @@ BuzzInfo.prototype.mouseEventHandler = function(event) {
 
 
 BuzzInfo.prototype.processIntervalInfo = function(intervalInfo, candidates, candidates_to_drop, results, data) {
-    var candidate, dateLabels, dataRow, filteredCandidates, i, interval, j, num_tweets_by_candidate, startDate,
+    var candidate, dataRow, filteredCandidates, i, interval, j, num_tweets_by_candidate, startDate,
         thisCandidatePosnTweetCounts;
     
     dateLabels = results.dateLabels;
+    var formatTimes = ["%b %d %Y, %i:%M %p", "%i:%M %p"];
+    var formatIndex = 0;
+    var formatLen = formatTimes.length;
     num_tweets_by_candidate = results.num_tweets_by_candidate;
     filteredCandidates = this.getFilteredCandidates(candidates, candidates_to_drop);
     this.isoStartDates = [];
     for (i = 0; (interval = intervalInfo[i]); i++) {
         num_tweets_by_candidate = interval.num_tweets_by_candidate;
         this.isoStartDates.push(interval.startDate);
-        dataRow = [dateLabels[i]];
+        dataRow = [this.getSafeDate(interval.startDate).strftime(formatTimes[formatIndex])];
         thisCandidatePosnTweetCounts = [];
         this.intervalCandidatePosnTweetCounts.push(thisCandidatePosnTweetCounts);
         for (j = 0; (candidate = filteredCandidates[j]); j++) {
@@ -96,6 +99,9 @@ BuzzInfo.prototype.processIntervalInfo = function(intervalInfo, candidates, cand
             thisCandidatePosnTweetCounts.push(num_tweets_by_candidate[candidate.id]);
         }
         data.addRow(dataRow);
+        if (formatIndex < formatLen - 1) {
+            formatIndex += 1;
+        }
     }
 };
 
@@ -181,12 +187,14 @@ BuzzInfo.prototype.updateLinkInfo = function() {
         this.setPrevLink();
         $('#button_time_back').attr('disabled', '');
     } else {
+        $('#button_time_back').attr('disabled', 'true');
         this.checkOlderLinksID = setInterval(function() { thisBuzzInfo.checkOlderLinks(); }, this.linkCheckDelay);
     }
     if (this.linkInfo.hasNextLinks) {
         this.setNextLink();
         $('#button_time_forward').attr('disabled', '');
     } else {
+        $('#button_time_forward').attr('disabled', 'true');
         this.checkNewerLinksID = setInterval(function() { thisBuzzInfo.checkNewerLinks(); }, this.linkCheckDelay);
     }
 };
@@ -288,48 +296,16 @@ BuzzInfo.prototype.showLocalDate = function(startDate, endDate) {
     
     var timeString;
     if (sdt.getDate() == edt.getDate() || edt.getHours() == 0) {
-        timeString = ("on "
-                      + s_mm
-                      + " "
-                      + sdt.getDate()
-                      + ", "
-                      + sdt.getFullYear()
-                      + " @ "
-                      + s_hour
-                      + ":00");
+        timeString = ("on " + sdt.strftime("%b %d, %Y @ %i:%M"));
         if (s_ap == e_ap) {
-            timeString += (" - "
-                           + e_hour
-                           + ":00 "
-                           + e_ap);
+            timeString += (" - " + edt.strftime("%i:%M %p"));
         } else {
-            timeString += (s_ap
-                           + " - "
-                           + e_hour
-                           + ":00 "
-                           + " "
-                           + e_ap);
+            timeString += (sdt.strftime(" %p") + " - " + edt.strftime("%i:%M %p"));
         }
     } else {
         // Spans different days
-        timeString = ("on "
-                      + s_mm
-                      + " "
-                      + sdt.getDate()
-                      + ", "
-                      + sdt.getFullYear()
-                      + ", "
-                      + s_hour
-                      + ":00"
-                      + s_ap
-                      + " - "
-                      + e_mm
-                      + " "
-                      + edt.getDate()
-                      + ", "
-                      + e_hour
-                      + ":00"
-                      + e_ap);
+        timeString = ("on " + sdt.strftime("%b %d, %Y @ %i:%M%p")
+                      + " - " + edt.strftime("%b %d, %i:%M%p"));
     }
     return timeString;
 };
