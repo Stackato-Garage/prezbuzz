@@ -61,6 +61,10 @@ See the file LICENSE.txt for licensing information.
         //alert("@hasData is false...");
         // go update those next/prev links, and say there's no data here.
       <% end %>
+      $("#buzz_help").click(function(e) {
+        e.preventDefault();
+        $("#help_content").modal();
+      });
     };
     google.setOnLoadCallback(onloadHandler);
     // ]]>
@@ -115,6 +119,14 @@ This site will work much better if you enable JavaScript.
     </div>
     <div id="buzz_details">
       <div id="buzz_tweets">
+        <div id="buzz_tweet_paginator_box" >
+          <div id="paginator_list" >
+          </div>
+          <div id="paginator_search" >
+            Search: <textarea id="buzz_tweet_search" rows=1" >
+            </textarea>
+          </div>
+        </div>
         <ul id="holder">
           
         </ul>
@@ -144,17 +156,5 @@ This site will work much better if you enable JavaScript.
       The word cloud is generated from the content in the tweets.  Some of the words in the cloud are linked to sites that were mentioned in the tweets.
     </p>
   </div>
-  <script>
-    $(document).ready(function() {
-      var settings = {
-        showArrows: true
-      };
-      var holder = $('#buzz_tweets').jScrollPane(settings);
-      $("#buzz_help").click(function(e) {
-        e.preventDefault();
-        $("#help_content").modal();
-      });
-    });
-  </script>
 </body>
 </html>

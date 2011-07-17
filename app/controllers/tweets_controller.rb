@@ -83,7 +83,8 @@ class TweetsController < ApplicationController
   def getChartInfo
     # This returns a big honking mess of json:
     # *intervalInfo: [{
-    #   num_tweets_by_candidate: num, startDate: isoDateTime, endDate: isoDateTime
+    #   num_tweets_by_candidate: num, startDate: isoDateTime, endDate: isoDateTime,
+    #   num_duplicates_by_candidate: num
     # }]
     # *candidates: [ { id:..., firstName:..., lastName:..., color:... } ]
     # *candidates_to_drop: { candidateNum: true }
@@ -119,7 +120,8 @@ class TweetsController < ApplicationController
       startDate = endDate
       endDate += intervalSize.seconds
       intervalInfo[i] = { :startDate => startDate, :endDate => endDate,
-                          :num_tweets_by_candidate => numTweetHashTemplate.clone,}
+                          :num_tweets_by_candidate => numTweetHashTemplate.clone,
+                          :num_duplicates_by_candidate => numTweetHashTemplate.clone,}
       loadedTweets[i] = {}#Hash.new([])
     end
     startDate = finalStartDate
@@ -134,10 +136,12 @@ class TweetsController < ApplicationController
     
     numIntervals.times do |i|
       ivTweets = intervalInfo[i][:num_tweets_by_candidate]
+      dupTweets = intervalInfo[i][:num_duplicates_by_candidate]
       ivTweets.keys.each do | candidateNum  |
         if loadedTweets[i].has_key?(candidateNum)
           numDuplicates = countDuplicates(loadedTweets[i][candidateNum])
           ivTweets[candidateNum] += numDuplicates
+          dupTweets[candidateNum] += numDuplicates
         end
       end
     end

@@ -79,24 +79,25 @@ BuzzInfo.prototype.mouseEventHandler = function(event) {
 
 BuzzInfo.prototype.processIntervalInfo = function(intervalInfo, candidates, candidates_to_drop, results, data) {
     var candidate, dataRow, filteredCandidates, i, interval, j, num_tweets_by_candidate, startDate,
-        thisCandidatePosnTweetCounts;
-    
-    dateLabels = results.dateLabels;
+        num_duplicates_by_candidate, thisCandidatePosnTweetCounts, thisCandidatePosnDuplicateCounts;
     var formatTimes = ["%b %d %Y, %i:%M %p", "%i:%M %p"];
     var formatIndex = 0;
     var formatLen = formatTimes.length;
-    num_tweets_by_candidate = results.num_tweets_by_candidate;
     filteredCandidates = this.getFilteredCandidates(candidates, candidates_to_drop);
     this.isoStartDates = [];
     for (i = 0; (interval = intervalInfo[i]); i++) {
         num_tweets_by_candidate = interval.num_tweets_by_candidate;
+        num_duplicates_by_candidate = interval.num_duplicates_by_candidate;
         this.isoStartDates.push(interval.startDate);
         dataRow = [this.getSafeDate(interval.startDate).strftime(formatTimes[formatIndex])];
         thisCandidatePosnTweetCounts = [];
+        thisCandidatePosnDuplicateCounts = [];
         this.intervalCandidatePosnTweetCounts.push(thisCandidatePosnTweetCounts);
+        this.intervalCandidatePosnDuplicateCounts.push(thisCandidatePosnDuplicateCounts);
         for (j = 0; (candidate = filteredCandidates[j]); j++) {
             dataRow.push(num_tweets_by_candidate[candidate.id]);
             thisCandidatePosnTweetCounts.push(num_tweets_by_candidate[candidate.id]);
+            thisCandidatePosnDuplicateCounts.push(num_duplicates_by_candidate[candidate.id]);
         }
         data.addRow(dataRow);
         if (formatIndex < formatLen - 1) {
@@ -137,6 +138,7 @@ BuzzInfo.prototype.processChart = function(results) {
     //var intervalInfo = results.intervalInfo;
     
     this.intervalCandidatePosnTweetCounts = [];
+    this.intervalCandidatePosnDuplicateCounts = [];
     this.candidateNames = [];
     this.clickColumnToDataColumn = [];
     this.gEndDate = isoFinalEndDate;
@@ -346,7 +348,12 @@ BuzzInfo.prototype.loadCandidateContent = function(clickColumn, row) {
     
     var obj = this.getStartAndEndDates(row);
     var numTweets = this.getTotalTweetCount(clickColumn, row);
-    $('div#buzz_candidate span#tweet_count').html(numTweets + " " + this.pluralizeWord("tweet", numTweets) + " ");
+    var numDuplicates = this.getTotalDuplicateCount(clickColumn, row);
+    var text = (numTweets + " " + this.pluralizeWord("tweet", numTweets));
+    if (numDuplicates > 0) {
+        text += " (" + numDuplicates + " " + this.pluralizeWord("duplicate", numDuplicates) + ")";
+    }
+    $('div#buzz_candidate span#tweet_count').html(text + " ");
     $('div#buzz_candidate div#buzz_candidate_details strong').html(candidateName);
     $('div#buzz_candidate div#buzz_candidate_details span#time').html(this.showLocalDate(obj.startDate, obj.endDate));
 };
@@ -371,6 +378,19 @@ BuzzInfo.prototype.getStartAndEndDates = function(row) {
     return obj;
 }
 
+BuzzInfo.prototype.getTotalDuplicateCount = function(clickColumn, row) {
+    if (typeof(row) === "undefined") {
+      var count = 0;
+      var len = this.intervalCandidatePosnDuplicateCounts.length;
+      for (var i = 0; i < len ; i++) {
+        count += this.intervalCandidatePosnDuplicateCounts[i][clickColumn];
+      }
+      return count;
+    } else {
+      return this.intervalCandidatePosnDuplicateCounts[row][clickColumn];
+    }
+};
+
 BuzzInfo.prototype.getTotalTweetCount = function(clickColumn, row) {
     if (typeof(row) === "undefined") {
       var count = 0;
@@ -383,7 +403,6 @@ BuzzInfo.prototype.getTotalTweetCount = function(clickColumn, row) {
       return this.intervalCandidatePosnTweetCounts[row][clickColumn];
     }
 };
-
 
 BuzzInfo.prototype.updateOlderLinks = function(result) {
     if (result) {
