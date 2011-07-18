@@ -190,7 +190,7 @@ class TweetsController < ApplicationController
     endDateISO = params[:endDateISO]
     candidateNum = params[:candidateNum]
     if !candidateNum
-      $stderr.puts("No candidateNum --- try index")
+      #$stderr.puts("No candidateNum --- try index")
       return index
     end
     updateSessionData(candidateNum)
@@ -248,7 +248,7 @@ class TweetsController < ApplicationController
     endDateISO = params[:endDateISO]
     candidateNum = params[:candidateNum]
     if !candidateNum
-      $stderr.puts("No candidateNum --- try index")
+      #$stderr.puts("No candidateNum --- try index")
       render :text => ''
       return
     end
@@ -322,9 +322,9 @@ class TweetsController < ApplicationController
     end
     sortedWordCounts = wordCounts.sort{|a, b| b['weight'] <=> a['weight'] }
     if sortedWordCounts.size > 3
-      $stderr.puts("top 3 words: #{sortedWordCounts[0]['text']} - #{sortedWordCounts[0]['weight']}, "\
-                   + "#{sortedWordCounts[1]['text']} - #{sortedWordCounts[1]['weight']}, "\
-                   + "#{sortedWordCounts[2]['text']} - #{sortedWordCounts[2]['weight']}, " )
+#      $stderr.puts("top 3 words: #{sortedWordCounts[0]['text']} - #{sortedWordCounts[0]['weight']}, "\
+#                   + "#{sortedWordCounts[1]['text']} - #{sortedWordCounts[1]['weight']}, "\
+#                   + "#{sortedWordCounts[2]['text']} - #{sortedWordCounts[2]['weight']}, " )
       # Look at combining the first two names
       name1 = sortedWordCounts[0]['text']
       name2 = sortedWordCounts[1]['text']
@@ -397,7 +397,7 @@ class TweetsController < ApplicationController
       numIntervals = 4
       intervalSize = ((endDate.to_time.to_i - startDate.to_time.to_i)/numIntervals).seconds.to_i
     end
-    $stderr.puts("calcTimeMetrics: intervalSize:#{intervalSize}")
+#    $stderr.puts("calcTimeMetrics: intervalSize:#{intervalSize}")
     delta = (endDate.to_i - startDate.to_i).seconds
     return {
       :startDate => startDate,
