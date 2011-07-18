@@ -228,7 +228,7 @@ function showRepagination(numTweets) {
     var remainder = numTweets % numTweetsPerBlock;
     if (remainder > 0) numBlocks++;
     var linkTextParts = [], text;
-    text = "All";
+    text = "Show All";
     linkTextParts.push(text);
     if (numBlocks > 5) {
         text = "<a href='#' onclick='nextBlock(event, 0); return 0;' >1</a>";
@@ -258,17 +258,17 @@ function updatePaginator(numTweets, idx) {
     text = "<a href='#' onclick='nextBlock(event, -1); return 0;' >All</a>";
     linkTextParts.push(text);
     if (idx === 0) {
-        text = "Prev";
+        text = "&laquo; Prev";
     } else {
-        text = "<a href='#' onclick='nextBlock(event, " + (idx - 1) + "); return 0;' >Prev</a>";
+        text = "<a href='#' onclick='nextBlock(event, " + (idx - 1) + "); return 0;' >&laquo; Prev</a>";
     }
     linkTextParts.push(text);
     text = "Page " + (idx + 1) + " of " + numBlocks;
     linkTextParts.push(text);
     if (idx === numBlocks - 1) {
-        text = "Next";
+        text = "Next &raquo;";
     } else {
-        text = "<a href='#' onclick='nextBlock(event, " + (idx + 1) + "); return 0;' >Next</a>";
+        text = "<a href='#' onclick='nextBlock(event, " + (idx + 1) + "); return 0;' >Next &raquo;</a>";
     }
     linkTextParts.push(text);
     //paginator_list.innerHTML = "<p>" + linkTextParts.join("") + "</p>";
