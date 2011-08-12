@@ -1,0 +1,301 @@
+/*
+ * Copyright (c) 2011 ActiveState Software Inc.
+ * See the file LICENSE.txt for licensing information.
+ */
+
+body {
+     margin: 0;
+     padding: 0;
+     background-image: url(/images/hex.png);
+     background-color: #333;
+}
+div#buzz_content {
+     width: 100%;
+}
+div#buzz_title {
+     background-color: #000;
+}
+div#buzz_title .container {
+     width: 960px;
+     margin: 0 auto;
+}
+div#buzz_title .container #buzz_social {
+     float: right;
+     color: #fff;
+     vertical-align: baseline;
+}
+div#buzz_title .container h1 {
+     text-shadow: 0px 3px 3px #999;
+     color: #eee;
+     font-size: 65px;
+     font-family: 'Paytone One', sans-serif;
+     margin: 0;
+}
+div#buzz_chart {
+     width: 960px;
+     margin: 0 auto;
+     padding: 10px 20px;
+     background-color: #fff;
+     overflow: hidden;
+}
+div#buzz_chart #visualization {
+     height: 330px;
+     overflow: hidden;
+}
+div#buzz_chart iframe {
+     position: relative;
+     top: -25px;
+     left: -95px;
+}
+.buzz_button_link {
+     float: right;
+     background-color: #666;
+     font-size: 25px;
+     font-family: 'Paytone One', sans-serif;
+     line-height: 25px;
+     padding: 5px 15px;
+     -moz-border-radius: 20px;
+     color: #eee;
+     margin-left: 10px;
+     margin-top: 35px;
+}
+.buzz_button_link:hover {
+     background-color: #999;
+     color: #fff;
+}
+.buzz_button_link[disabled] {
+     opacity: .5;
+}
+.buzz_button_link:hover[disabled] {
+     background-color: #666;
+     color: #eee;
+}
+div.buzz_button_link a {
+     text-decoration: none;
+     color: #fff;
+}
+#button_time_back {
+     float: left;
+     margin-left: 50px;
+}
+#button_time_forward {
+     margin-right: 150px;
+}
+#button_time_back,
+#button_time_forward {
+     margin-top: 0;
+     font-family: Helvetica, sans-serif;
+     font-weight: bold;
+     font-size: 14px;
+     line-height: 16px;
+}
+a#buzz_tweet {
+     background-color: #45BADF;
+     padding: 0 10px;
+}
+a#buzz_tweet:hover {
+     background-color: #53D4FF;
+}
+div#buzz_details {
+     clear: both;
+     width: 960px;
+     margin: auto;
+     background-color: #fff;
+     padding: 10px 20px 60px;
+}
+div#buzz_details:after {
+     content: ".";
+     display: block;
+     height: 0;
+     clear: both;
+     visibility: hidden;
+}
+div#word_cloud {
+     height: 350px;
+     width: 480px;
+     position: relative;
+     float: right;
+}
+div#buzz_candidate {
+     background-color: #fff;
+     color: #fff;
+     font-size: 28px;
+     font-family: Helvetica, sans-serif;
+     width: 960px;
+     padding: 10px 20px;
+     margin: auto;
+     vertical-align: baseline;
+     text-shadow: 0px 2px 2px #000;
+}
+div#buzz_candidate:after {
+     content: ".";
+     display: block;
+     height: 0;
+     clear: both;
+     visibility: hidden;
+}
+div#buzz_candidate #buzz_candidate_details {
+     margin-left: 20px;
+     padding-top: 10px;
+}
+     
+#buzz_candidate #buzz_candidate_count {
+     float: right;
+     margin-top: 20px;
+     font-size: 36px;
+}
+     
+div#buzz_candidate img {
+     float: left;
+     -moz-border-radius: 5px;
+     margin: 10px 10px 10px 0;
+     -moz-box-shadow: 0px 2px 2px #000;
+}
+div#buzz_candidate strong {
+     display: inline-block;
+     margin: 6px 0;
+     font-size: 60px;
+}
+     
+div#buzz_candidate span#time {
+     font-size: 24px;
+}
+     
+div#buzz_candidate.perry {
+     border-color: #FFF200;
+}
+
+/* Candidate Colors */
+<% @candidateLastNameColors.each do | lastName, color | %>
+body.<%=lastName%> div#buzz_candidate {
+    background-color: <%=color%>;
+}
+body.<%=lastName%> #buzz_details {
+     background: #FFFFFF;
+     background: -moz-linear-gradient(top, <%=color%> 0%, #000 100%);
+     background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,<%=color%>), color-stop(100%,#000 ));
+     background: -webkit-linear-gradient(top, <%=color%> 0%,#000  100%);
+     background: -o-linear-gradient(top, <%=color%> 0%,#000 100%);
+     background: -ms-linear-gradient(top, <%=color%> 0%,#000  100%);
+     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='<%=color%>', endColorstr='#000 ',GradientType=0 );
+     background: linear-gradient(top, <%=color%> 0%,#000  100%);
+}
+<% end %>
+
+div#buzz_tweets {
+     width: 470px;
+     padding: 0;
+     float: left;
+}
+     
+div#word_cloud {
+     background-color: #fff;
+     -moz-border-radius: 5px;
+     -moz-box-shadow: 0px 1px 3px #000;
+     width: 470px;
+}
+     
+ul#tweetDump-list {
+     list-style: none;
+     padding: 0;
+}
+#holder {
+     padding-bottom: 60px;
+     -moz-box-shadow: 0px 1px 3px #000;
+     height: 375px;
+}
+#holder.loading {
+     padding-bottom: 0;
+     height: 435px;
+}
+#holder.loading:after {
+     content: "Loading...";
+     display: block;
+     position: absolute;
+     width: 470px;
+     height: 435px;
+     -moz-border-radius: 5px;
+     background-color: #424242;
+     color: #fff;
+     font-size: 36px;
+     text-align: center;
+     font-family: Helvetica, sans-serif;
+     line-height: 150px;
+     top: 0;
+     left: 0;
+}
+#holder.loading li {
+     visibility: hidden;
+}
+#holder li hr {
+     display: none;
+}
+
+#buzz_tweets #twitter_controls {
+     position: relative;
+     bottom: 60px;
+     -moz-border-radius: 0 0 5px 5px;
+}
+
+.tweetContainer {
+     width: 410px;
+}
+
+.tweetUserImageContainer {
+     float: left;
+}
+     
+.tweetUserImageContainer img {
+     -moz-border-radius: 5px;
+     -moz-box-shadow: 0px 1px 3px #000;
+}
+     
+.tweetContentsContainer {
+     margin-left: 60px;
+     font-family: Helvetica;
+     font-size: 14px;
+}
+.tweetUserNameContainer {
+     margin-bottom: 10px;
+}
+     
+.swShowPage {
+     display: none;
+}
+     
+.swFB.buzz_button_link {
+     margin-top: 10px;
+     font-family: Helvetica;
+     font-size: 40px;
+     height: 20px;
+     line-height: 24px;
+     background-color: #000;
+}
+.swFB.buzz_button_link[disabled] {
+     background-color: #666;
+     opacity: .5;
+}
+#button_back {
+     float: left !important;
+}
+     
+#button_forward {
+     float: right !important;
+     margin-right: 10px;
+}
+     
+#twitter_attr {
+     clear: right;
+}
+     
+#twitterHeader {
+     font-family: Helvetica, sans-serif;
+     font-size: 19px;
+     font-weight: bold;
+     text-align: center;
+     padding: 20px;
+     color: #999;
+}
+#twitterHeader img {
+     margin-bottom: -2.5px;
+}
