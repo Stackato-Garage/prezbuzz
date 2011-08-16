@@ -105,7 +105,7 @@ This will need to be done on the server as well.
 
 In the top-level directory of the project, run:
 
-    stackato push prezbuzz
+    stackato push -n
 
 When prompted, choose "y" to bind a MySQL service to the app and accept
 the default service name.
@@ -115,7 +115,7 @@ the default service name.
 Change the default character set for MySQL tables to accomodate UTF-8
 twitter data: 
     
-    stackato dbshell prezbuzz
+    stackato dbshell buzz
     > ALTER TABLE tweets CONVERT TO CHARACTER SET utf8 collate utf8_unicode_ci;
     > quit
  
@@ -133,8 +133,8 @@ This is best run as part of a cron job once every hour or two.
 
 With a micro-cloud deployment of Stackato, the default URL would be:
 
-  http://prezbuzz.stackato.local
+  http://buzz.stackato.local
   
 A hosted version of the same app can be found here:
 
-  http://prezbuzz.stackato.com
+  http://buzz.stackato.com

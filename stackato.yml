@@ -1,0 +1,9 @@
+name: buzz
+
+framework:
+  runtime: ruby18
+
+services:
+  mysql: mysql-prezbuzz
+
+
