@@ -405,6 +405,20 @@ body.Christie #buzz_details {
      filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#FFEE11', endColorstr='#000 ',GradientType=0 );
      background: linear-gradient(top, #FFEE11 0%,#000  100%);
 }
+
+body.Ryan div#buzz_candidate {
+     background-color: #CCFF33;
+}
+body.Ryan #buzz_details {
+     background: #FFFFFF;
+     background: -moz-linear-gradient(top, #CCFF33 0%, #000 100%);
+     background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#CCFF33), color-stop(100%,#000 ));
+     background: -webkit-linear-gradient(top, #CCFF33 0%,#000  100%);
+     background: -o-linear-gradient(top, #CCFF33 0%,#000 100%);
+     background: -ms-linear-gradient(top, #CCFF33 0%,#000  100%);
+     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#CCFF33', endColorstr='#000 ',GradientType=0 );
+     background: linear-gradient(top, #CCFF33 0%,#000  100%);
+}
      
 div#buzz_tweets {
      width: 470px;
@@ -614,3 +628,21 @@ div#word_cloud {
 }
 #simplemodal-container h3 {color:#84b8d9; font-size: 30px}
 #simplemodal-container p { margin-bottom: 20px; }
+
+sitb {
+ color:#3366CC,
+       #F02288,
+       #FF9900,
+       #109618,
+       #990099,
+       #0099C6,
+       #FF2288,
+       #66AA00,
+       #CCFF33,
+       #B82E2E,
+       #316395,
+       #775500,
+       #22AA99,
+       #FFEE11,
+       
+}
