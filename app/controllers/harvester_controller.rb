@@ -13,6 +13,7 @@ class HarvesterController < ApplicationController
        ["Rick<br>Santorum", "775500"],
        ["Rick<br>Perry", "22AA99"],
        ["Chris<br>Christie", "FFEE11"],
+       ["Paul<br>Ryan", "CCFF33"],
        ]
 
   @@url_base = 'http://search.twitter.com/search.json'
