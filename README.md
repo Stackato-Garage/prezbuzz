@@ -75,6 +75,35 @@ followed by this expected output:
     ==  CreateTweets: migrated (0.0027s) ==========================================
     ...
     
+### Running Unit Tests:
+
+The first time you run the tests, you'll need to build a test database schema:
+
+    rake db:test:prepare
+
+Now running tests is simple:
+
+    rake test/units # Tests the models
+
+    rake test/functionals # Tests the tweets and harvester controllers
+    
+The data for the tests is given in the test/fixtures files, and a database,
+db/test.sqlite, is built from this data each time the tests are run.  The
+tests modify the database as they run, but the database is left for further
+analysis after the tests finish running.  Each time the tests are run the
+test database is rebuilt from the fixtures.
+
+The easiest way to comment out a test is to rename its "test" header
+to "htest".   For example, in tweet_test.rb, line 6, rename
+
+    test "item 1" do
+    
+to
+
+    htest "item 1" do
+
+### Running the Server:
+
 Start the server:
 
     rails server webrick
