@@ -1,0 +1,84 @@
+obama:
+   id: 1
+   lastName: Obama
+   firstName: Barack
+   color: 3366CC
+
+bachmann:
+   id: 2
+   lastName: Bachmann
+   firstName: Michele
+   color: F02288
+
+cain:
+   id: 3
+   lastName: Cain
+   firstName: Herman
+   color: FF9900
+
+gingrich:
+   id: 4
+   lastName: Gingrich
+   firstName: Newt
+   color: 109618
+
+huntsman:
+   id: 5
+   lastName: Huntsman
+   firstName: Jon
+   color: 990099
+
+johnson:
+   id: 6
+   lastName: Johnson
+   firstName: Gary
+   color: 0099C6
+
+palin:
+   id: 7
+   lastName: Palin
+   firstName: Sarah
+   color: FF2288
+
+paul:
+   id: 8
+   lastName: Paul
+   firstName: Ron
+   color: 66AA00
+
+pawlenty:
+   id: 9
+   lastName: Pawlenty
+   firstName: Tim
+   color: B82E2E
+
+romney:
+   id: 10
+   lastName: Romney
+   firstName: Mitt
+   color: 316395
+
+santorum:
+   id: 11
+   lastName: Santorum
+   firstName: Rick
+   color: 775500
+
+perry:
+   id: 12
+   lastName: Perry
+   firstName: Rick
+   color: 22AA99
+
+christie:
+   id: 13
+   lastName: Christie
+   firstName: Chris
+   color: FFEE11
+
+ryan:
+   id: 14
+   lastName: Ryan
+   firstName: Paul
+   color: CCFF33
+

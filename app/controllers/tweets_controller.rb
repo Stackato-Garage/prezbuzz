@@ -101,18 +101,11 @@ class TweetsController < ApplicationController
     intervalSize = timeMetrics[:intervalSize]
     candidates = Candidate.find(:all)
     returnObj[:candidates] = candidates.map{|c| {:id => c.id, :firstName => c.firstName, :lastName => c.lastName, :color => c.color}}
-    conn = Tweet.connection
-    rawTweetData = conn.select_rows("SELECT c.candidate_id, t.id, t.publishedAt
-                     from tweets as t, candidates_tweets as c
-                     where t.publishedAt >= #{conn.quote(startDate)}
-                           and t.publishedAt < #{conn.quote(timeMetrics[:endDate])}
-                           and c.tweet_id = t.id")
     baseStartDateI = startDate.to_i
     numIntervals = timeMetrics[:numIntervals]
     intervalInfo = Array.new(numIntervals)
     returnObj[:intervalInfo] = intervalInfo
     finalStartDate = startDate
-    loadedTweets = {}
     
     endDate = startDate
     numTweetHashTemplate = Hash[*(candidates.map{|c| [c.id, 0]}.flatten)]
@@ -122,28 +115,43 @@ class TweetsController < ApplicationController
       intervalInfo[i] = { :startDate => startDate, :endDate => endDate,
                           :num_tweets_by_candidate => numTweetHashTemplate.clone,
                           :num_duplicates_by_candidate => numTweetHashTemplate.clone,}
-      loadedTweets[i] = {}#Hash.new([])
     end
     startDate = finalStartDate
     
-    rawTweetData.each do |candidateNum, tweetId, publishedAt|
+    conn = Tweet.connection
+    origRows = conn.select_rows("SELECT c.candidate_id, t.id, t.publishedAt
+                     from tweets as t, candidates_tweets as c
+                     where t.publishedAt >= #{conn.quote(startDate)}
+                           and t.publishedAt < #{conn.quote(timeMetrics[:endDate])}
+                           and c.tweet_id = t.id")
+    duplicateRows = conn.select_rows("SELECT c.candidate_id, d.orig_tweet_id, d.publishedAt 
+                                      from duplicate_tweets as d, candidates_tweets as c
+                                      where d.publishedAt >= #{conn.quote(startDate)}
+                                            and d.publishedAt < #{conn.quote(timeMetrics[:endDate])}
+                                            and c.tweet_id = d.orig_tweet_id")
+    origIDs = Hash[*origRows.map{|row| [row[1], true]}.flatten]
+    # Transfer duplicate rows to origRows only if we haven't seen the orig_tweet_id yet.
+    # This allows multiple items to point to the same tweet in a different time period.
+    # One of the tweets will be considered "original", the others duplicates.
+    (0 .. duplicateRows.size - 1).to_a.reverse.each do |i|
+      id = duplicateRows[i][1]
+      if !origIDs.has_key?(id)
+        origRows.push(duplicateRows.delete_at(i))
+        origIDs[id] = true
+      end
+    end
+    
+    origRows.each do |candidateNum, tweetId, publishedAt|
       pubTime = DateTime.parse(publishedAt.to_s).to_i
       interval = ((pubTime - startDate.to_i)/intervalSize.seconds).to_i
-      loadedTweets[interval][candidateNum] = [] unless loadedTweets[interval].has_key?(candidateNum)
-      loadedTweets[interval][candidateNum] << tweetId
       intervalInfo[interval][:num_tweets_by_candidate][candidateNum] += 1
     end
     
-    numIntervals.times do |i|
-      ivTweets = intervalInfo[i][:num_tweets_by_candidate]
-      dupTweets = intervalInfo[i][:num_duplicates_by_candidate]
-      ivTweets.keys.each do | candidateNum  |
-        if loadedTweets[i].has_key?(candidateNum)
-          numDuplicates = countDuplicates(loadedTweets[i][candidateNum])
-          ivTweets[candidateNum] += numDuplicates
-          dupTweets[candidateNum] += numDuplicates
-        end
-      end
+    duplicateRows.each do |candidateNum, tweetId, publishedAt|
+      pubTime = DateTime.parse(publishedAt.to_s).to_i
+      interval = ((pubTime - startDate.to_i)/intervalSize.seconds).to_i
+      intervalInfo[interval][:num_tweets_by_candidate][candidateNum] += 1
+      intervalInfo[interval][:num_duplicates_by_candidate][candidateNum] += 1
     end
     
     total_num_tweets_by_candidate = Hash[candidates.map{|candidate| [candidate.id, 0]}]
@@ -184,20 +192,9 @@ class TweetsController < ApplicationController
       format.xml  { render :xml => returnObj }
     end
   end
-
+  
   def getTweets
-    startDateISO = params[:startDateISO] # YYYY-MM-DD
-    endDateISO = params[:endDateISO]
-    candidateNum = params[:candidateNum]
-    if !candidateNum
-      #$stderr.puts("No candidateNum --- try index")
-      return index
-    end
-    updateSessionData(candidateNum)
-    startDate = DateTime.parse(startDateISO, true)
-    endDate = DateTime.parse(endDateISO, true)
-    tweets = Candidate.find(candidateNum).tweets.find(:all,
-      :conditions => ['publishedAt >= ? and publishedAt < ?', startDate, endDate])
+    tweets = getUniqueAndCulledDuplicatesForCandidate()
     resultTweets = []
     i = 0
     tweets = tweets.select{|t| t.twitter_user_id}
@@ -221,7 +218,7 @@ class TweetsController < ApplicationController
       i += 1
       user = h[tweet.twitter_user_id]
       if !user
-        $stderr.puts "Can't find user %d for tweet %d (candidate %d)" % [tweet.twitter_user_id, tweet.id, candidateNum]
+        $stderr.puts "Can't find user %d for tweet %d (candidate %d)" % [tweet.twitter_user_id, tweet.id, params[:candidateNum]]
         next
       end
       info = { 'text'  => tweet.text,
@@ -244,31 +241,10 @@ class TweetsController < ApplicationController
 
   def getWordCloud
     # $stderr.puts("getWordCloud!")
-    startDateISO = params[:startDateISO] # YYYY-MM-DD
-    endDateISO = params[:endDateISO]
-    candidateNum = params[:candidateNum]
-    if !candidateNum
-      #$stderr.puts("No candidateNum --- try index")
-      render :text => ''
-      return
-    end
-    startDate = DateTime.parse(startDateISO, true)
-    endDate = DateTime.parse(endDateISO, true)
-    # Trying to use :condition fails in Rails 2 due to mixup between
-    # DateTime and Rails' ActiveSupport::TimeWithZone, but this way works:
-    # Problem: clouds get invalidated everytime a new tweet is processed in that candidate range
-    wordCloud = nil
-    # Reinstate this once I figure out how to invalidate the cache.
-    #wordCloud = CachedCloud.find_by_startTime_and_endTime_and_candidateId(startDate, endDate, candidateNum)
-    if wordCloud
-      #$stderr.puts("getWordCloud: return cached words")
-      render :text => wordCloud.json_word_cloud
-      return
-    end
-    stopWords = StopWord.find(:all).map{|s|s.word}
-    textBits = Candidate.find(candidateNum).tweets.find(:all,
-      :conditions => ['publishedAt >= ? and publishedAt < ?', startDate, endDate]).map{|tw|tw.text}
+    tweets = getUniqueAndCulledDuplicatesForCandidate()
+    textBits = tweets.map{|tw|tw.text}
     wordCounts = {}
+    stopWords = StopWord.find(:all).map{|s|s.word}
     textBits.each do |textBit|
       associatedLink = nil
       links, textBitWithLinks = textBit.split(@@httpSplitter_1).partition{|frag| frag[0, 3] == "<a "}
@@ -357,12 +333,39 @@ class TweetsController < ApplicationController
   end
   
   private
-
-  def countDuplicates(tweetIds)
-    query = (['orig_tweet_id = ?'] * tweetIds.size).join(" OR ")
-    return DuplicateTweet.count(:conditions => [query, *tweetIds])
-  end
   
+  def getUniqueAndCulledDuplicatesForCandidate()
+    candidateNum = params[:candidateNum]
+    if !candidateNum
+      #$stderr.puts("No candidateNum --- try index")
+      raise RuntimeError.new("No candidate with # #{params[:candidateNum]}")
+    end
+    updateSessionData(candidateNum)
+    startDateISO = params[:startDateISO] # YYYY-MM-DD
+    endDateISO = params[:endDateISO]
+    startDate = DateTime.parse(startDateISO, true)
+    endDate = DateTime.parse(endDateISO, true)
+    tweets = Candidate.find(candidateNum).tweets.find(:all,
+      :conditions => ['publishedAt >= ? and publishedAt < ?', startDate, endDate])
+    origIDs = Hash[*tweets.map{|t| [t.id, true]}.flatten]
+    conn = Tweet.connection
+    duplicateIDs = conn.select_rows("SELECT d.orig_tweet_id 
+                                      from duplicate_tweets as d, candidates_tweets as c
+                                      where c.candidate_id = #{candidateNum}
+                                            and d.publishedAt >= #{conn.quote(startDate)}
+                                            and d.publishedAt < #{conn.quote(endDate)}
+                                            and c.tweet_id = d.orig_tweet_id").map{|r|r[0]}
+    otherIDs = []
+    duplicateIDs.each do |id|
+      if !origIDs.has_key?(id)
+        otherIDs.push(id)
+        origIDs[id] = true
+      end
+    end
+    tweets += Tweet.find(otherIDs) if otherIDs.size > 0
+    return tweets
+  end
+
   def findSessionData
     session[:prezbuzzData] ||= {}
   end

@@ -66,7 +66,8 @@ class HarvesterController < ApplicationController
   def getenv
     keys = request.env.keys
     s = []
-    request.env.each do |key, value|
+    request.env.cutoffDate = '2011-08-24T08:40:00'
+each do |key, value|
       s << "#{key}:#{value}"
     end
     s1 = s.join("\n")
@@ -117,6 +118,56 @@ class HarvesterController < ApplicationController
     end
     render :text => candidateID
   end
+
+  def removeOldTweets
+    cutoffDate = params[:cutoffDate]
+    $stderr.puts("************ removeOldTweets: cutoffDate:#{cutoffDate}")
+    if cutoffDate.nil?
+      cutoffDate = DateTime.now.utc - 1.month
+    else
+      cutoffDate = DateTime.parse(cutoffDate, true)
+    end
+    data = {
+      :before => {
+        :tweets => Tweet.count,
+        :duplicates => DuplicateTweet.count,
+        :twitter_users =>  TwitterUser.count,
+      }
+    }
+    conn = Tweet.connection
+    # This one's easy, as there are no dependencies:
+    conn.execute("delete from duplicate_tweets
+                  where publishedAt < #{conn.quote(cutoffDate)}")
+    rows = conn.select_rows("SELECT id, twitter_user_id from tweets
+                     where publishedAt < #{conn.quote(cutoffDate)}")
+    ids = rows.map {|row| row[0]}
+    user_ids = rows.map {|row| row[1]}
+    orig_ids = ids.clone
+    while ids.size > 0
+      ids_frag = ids.slice!(0, 100)
+      query = (["tweet_id = %d"] * ids_frag.size).join(" or ") % ids_frag
+      conn.execute("delete from candidates_tweets where " + query)
+      
+      query = (["orig_tweet_id = %d"] * ids_frag.size).join(" or ") % ids_frag
+      conn.execute("delete from duplicate_tweets where " + query)
+    end
+    Tweet.delete(orig_ids)
+    user_ids_to_drop = []
+    while user_ids.size > 0
+      user_ids_frag = user_ids.slice!(0, 100)
+      query = (["twitter_user_id = %d"] * user_ids_frag.size).join(" or ") % user_ids_frag
+      found_user_ids = conn.select_rows("select twitter_user_id from tweets where " + query).map{|row| row[0]}
+      user_ids_to_drop += user_ids_frag - found_user_ids
+    end
+    TwitterUser.delete(user_ids_to_drop)
+    data[:after] = {
+      :tweets => Tweet.count,
+      :duplicates => DuplicateTweet.count,
+      :twitter_users =>  TwitterUser.count,
+    }
+    render :text => data.to_json
+  end
+		 
   
   private
   
@@ -253,14 +304,14 @@ class HarvesterController < ApplicationController
                               :order => "publishedAt DESC" )
       if olderTweet
         #XXXX todo: if we now have the actual underlying tweet, use that instead of the retweet
-        DuplicateTweet.create(:tweetId => tweetId, :orig_tweet_id => olderTweet.id)
-        return {:status => 1, :reject => "COPIED_TWEET"}
+        DuplicateTweet.create(:tweetId => tweetId, :orig_tweet_id => olderTweet.id, :publishedAt=>parsedTime)
+        return {:status => 1, :reject => "COPIED_TWEET", :note => "copy(1): tweetId: #{tweetId}"}
       else
         olderTweet = Tweet.find_by_textKernel(tweetData[:textKernel])
         if olderTweet
           #$stderr.puts("Found an older tweet: parsedTime:#{parsedTime}, 4hrs ago:#{fourHoursAgo}, oldTweetTime:#{olderTweet.publishedAt}")
-          DuplicateTweet.create(:tweetId => tweetId, :orig_tweet_id => olderTweet.id)
-          return {:status => 1, :reject => "COPIED_TWEET"}
+          DuplicateTweet.create(:tweetId => tweetId, :orig_tweet_id => olderTweet.id, :publishedAt=>parsedTime)
+          return {:status => 1, :reject => "COPIED_TWEET", :note => "copy(2): tweetId: #{tweetId}"}
         end
         
       end

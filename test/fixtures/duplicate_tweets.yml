@@ -1,0 +1,59 @@
+i1:
+    id: 1
+    orig_tweet_id: 4
+    tweetId: 106442013234307073
+    publishedAt: 2011-08-24 19:05:28 UTC
+    
+i2:
+    id: 2
+    orig_tweet_id: 10
+    tweetId: 106441845260828673
+    publishedAt: 2011-08-24 19:04:48 UTC
+    
+i3:
+    id: 3
+    orig_tweet_id: 4
+    tweetId: 106441837622984704
+    publishedAt: 2011-08-24 19:04:46 UTC
+    
+i4:
+    id: 4
+    orig_tweet_id: 30
+    tweetId: 106439897790947330
+    publishedAt: 2011-08-24 18:57:03 UTC
+    
+i5:
+    id: 5
+    orig_tweet_id: 41
+    tweetId: 106437582170238976
+    publishedAt: 2011-08-24 18:47:51 UTC
+    
+i6:
+    id: 6
+    orig_tweet_id: 10
+    tweetId: 106437393405579265
+    publishedAt: 2011-08-24 18:47:06 UTC
+    
+i7:
+    id: 7
+    orig_tweet_id: 49
+    tweetId: 106436561121443841
+    publishedAt: 2011-08-24 18:43:48 UTC
+    
+i8:
+    id: 8
+    orig_tweet_id: 56
+    tweetId: 106435422057541632
+    publishedAt: 2011-08-24 18:39:16 UTC
+    
+i9:
+    id: 9
+    orig_tweet_id: 50
+    tweetId: 106435376490614784
+    publishedAt: 2011-08-24 18:39:05 UTC
+    
+i10:
+    id: 10
+    orig_tweet_id: 11
+    tweetId: 106434866744270848
+    publishedAt: 2011-08-24 18:37:04 UTC

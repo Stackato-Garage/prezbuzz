@@ -12,6 +12,8 @@ class CreateTweets < ActiveRecord::Migration
     end
     add_index :tweets, :textKernel
     add_index :tweets, :tweetId
+    add_index :tweets, :twitter_user_id
+    add_index :tweets, :publishedAt
   end
 
   def self.down

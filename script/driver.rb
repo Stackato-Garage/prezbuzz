@@ -20,6 +20,7 @@ class Wrapper
     @port = options[:port]
     @verbose = options[:verbose]
     @appName = options[:appname]
+    @cutoffDate = options[:cutoffDate]
   end
   
   def http_get(path, params=nil)
@@ -133,6 +134,15 @@ class Wrapper
     end
   end
   
+  def removeOldTweets
+    params = { :cutoffDate => @cutoffDate,
+               :verbose => @verbose}
+    res = http_get('/harvester/removeOldTweets', params)
+    if @verbose
+	$stderr.puts("removeOldTweets: #{res.body}")
+    end
+  end
+  
   # Move more work from the server to the client, due to timeout issues.
   
   def updateCurrentTweets
@@ -178,7 +188,8 @@ if __FILE__ == $0
   options = {:verbose=>false,
 	     :host => 'localhost',
 	     :appname => 'rails-prezbuzz',
-	     :port => 80}
+	     :port => 80,
+	     :cutoffDate => nil}
   OptionParser.new do |opts|
     opts.banner = "Usage: $0 [options] (init|update)"
     opts.on("-v", "--[no-]verbose", "Run verbosely") do |v|
@@ -192,6 +203,9 @@ if __FILE__ == $0
     end
     opts.on("-a", "--appname APPNAME", "AppName") do |s|
       options[:appname] = s
+    end
+    opts.on("-d", "--cutoff-date DATE", "Date") do |s|
+      options[:cutoffDate] = s
     end
   end.parse!
 
@@ -208,5 +222,7 @@ if __FILE__ == $0
     w.setup1
     w.runThroughCandidates
     w.updateLastStopTime
+  when "cull"
+    w.removeOldTweets
   end
 end
