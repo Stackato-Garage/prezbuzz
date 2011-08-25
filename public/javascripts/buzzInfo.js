@@ -317,17 +317,17 @@ BuzzInfo.prototype.getTweets = function(clickColumn, row) {
     var thisBuzzInfo = this;
     var dataColumn = this.clickColumnToDataColumn[clickColumn];
     var candidateNum = dataColumn + 1;
+    var obj = this.getStartAndEndDates(row);
     var localCallback = function(results) {
         getTweetCallback(results);
         setTimeout(function() {
           jQuery.getJSON(thisBuzzInfo.getWordCloudURL,
-                    { candidateNum:candidateNum, startDateISO:thisBuzzInfo.isoStartDates[0],
-                      endDateISO: thisBuzzInfo.gEndDate
+                    { candidateNum:candidateNum, startDateISO: obj.startDate,
+                      endDateISO: obj.endDate
                     },
                     getWordCloudCallback); // in candidateBuzz.js
         }, 100);
     };
-    var obj = this.getStartAndEndDates(row);
     jQuery.getJSON(this.getTweetsURL,
               { candidateNum:dataColumn + 1, startDateISO: obj.startDate,
                 endDateISO: obj.endDate
