@@ -259,7 +259,7 @@ class TweetsController < ApplicationController
       words = words.reject{|wd| stopWords.index(wd.downcase)}
       words.each do |wd|
         wdl = wd.downcase
-	next if (m = @@contractionChecker.match(wdl)) and stopWords.index(m[1])
+        next if (m = @@contractionChecker.match(wdl)) and stopWords.index(m[1])
         if wordCounts.has_key?(wdl)
           wordCounts[wdl]['weight'] += 1
           if !wordCounts[wdl]['url'] && associatedLink
