@@ -47,7 +47,7 @@ function addSearchFieldListener() {
                 alert("Go add a search node....");
                 searchTextField.parentNode.appendChild(searchButton);
             }
-        } catch(ex) {
+        } catch(ex2) {
             alert("Sorry, searching doesn't work on this web browser");
         }
     }
@@ -203,9 +203,10 @@ function stopEvent(event) {
 
 function nextBlock(event, idx) {
     clearTweetList();
+    var numTweets;
     if (idx == -1) {
         // Show all of them
-        var numTweets = storedFilteredTweets.length;
+        numTweets = storedFilteredTweets.length;
         showRepagination(numTweets);
         stopEvent(event);
         insertTweets(storedFilteredTweets, 0, numTweets);
@@ -213,7 +214,7 @@ function nextBlock(event, idx) {
     }
     var startIndex = idx * numTweetsPerBlock;
     var stopIndex = startIndex + numTweetsPerBlock;
-    var numTweets = storedFilteredTweets.length;
+    numTweets = storedFilteredTweets.length;
     updatePaginator(numTweets, idx);
     if (stopIndex > numTweets) {
         stopIndex = numTweets;
