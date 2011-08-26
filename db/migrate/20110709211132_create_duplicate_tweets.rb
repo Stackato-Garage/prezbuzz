@@ -7,7 +7,7 @@ class CreateDuplicateTweets < ActiveRecord::Migration
     end
     add_index :duplicate_tweets, :tweetId
     add_index :duplicate_tweets, :orig_tweet_id
-    add_index :tweets, :publishedAt
+    add_index :duplicate_tweets, :publishedAt
   end
 
   def self.down
