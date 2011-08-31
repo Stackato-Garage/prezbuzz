@@ -167,3 +167,35 @@ With a micro-cloud deployment of Stackato, the default URL would be:
 A hosted version of the same app can be found here:
 
   http://buzz.stackato.com
+
+## To add a new candidate
+
+We haven't automated this step via the app UI yet.  Here's what you need to do:
+
+1. edit `db/seeds.rb` to indicate what you want.  This data is only used when an
+   app is init'ed, but it's a good marker
+
+2. add new entries in `public/stylesheets/candidateBuzz.css` for
+   `body.vmware div#buzz_candidate` and `body.vmware #buzz_details`
+   
+3. add a 128x128 PNG image for the new candidate in `public/images`.  If you're
+   adding a candidate named John Smith, the image should be called `Smith.png`.
+   The best place to get this is image is from the candidate's twitter profile.
+
+4. run 
+
+       mysql \`stackato service_conn vmwarebuzz` 
+
+   and insert the new line in the candidates table.  Here's the syntax for
+   John Smith with color magenta:
+   
+       INSERT INTO candidates (firstName, lastName, color) VALUES
+         ('John', 'Smith', 'FF00FF');
+    
+    The color string is case-insensitive, but prezbuzz conventionally uses upper-case.
+
+5. run `stackato update`
+
+6. run `script/driver.rb ... update`
+
+7. test the app
