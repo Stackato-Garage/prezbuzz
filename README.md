@@ -7,7 +7,8 @@ See LICENSE.txt for the license on PrezBuzz
 
 To get Prezbuzz working, it needs to be deployed, initialized, and
 then updated on a regular basis. This README covers running it on bare
-hardware (e.g. your workstation) and deploying it to Stackato.
+hardware (e.g. your workstation) and deploying it to Stackato. Prezbuzz
+can initialize and update itself; this document will explain how.
 
 ## Prerequisities:
 
@@ -118,10 +119,11 @@ rebuild the CSS file:
     
 Now populate the database:
 
-    ruby script/driver.rb -h localhost -p 3000 update -v
+    ruby script/batch_harvester.rb -V update
 
 If it's slow, keep in mind that sqlite3 is a few orders of
-magnitude slower than a networked database.
+magnitude slower than a networked database. If you don't want to see all
+that output, you can leave off the "-V" option.
 
 If you change the candidates' colors, or add/remove candidates, you'll
 need to rebuild candidates.css, like so:
@@ -144,25 +146,37 @@ the default service name.
 Change the default character set for MySQL tables to accomodate UTF-8
 twitter data: 
     
-    stackato dbshell buzz
+    stackato dbshell prezbuzz
     > ALTER TABLE tweets CONVERT TO CHARACTER SET utf8 collate utf8_unicode_ci;
     > quit
  
 ### Populate/Update twitter data:
 
-The current implementation of Prezbuzz requires data updates to be
-initiated remotely. A local 'driver' script contacts the application and
-gets it to fetch a new batch of tweets.
+Prezbuzz's stackato.yml file contains two cron lines which update and maintain
+the twitter data. The first line
 
-    ruby script/driver -h <hostname> update
+    0 * * * * ruby script/batch_harvester.rb update >> $HOME/../logs/update.log
+    
+loads new tweets once an hour, on the hour (we recommend changing the leading
+"0" to a random value between 5 and 55 to avoid swamping the twitter API). The
+second line
 
-This is best run as part of a cron job once every hour or two.
+    30 10 29 * * ruby script/batch_harvester.rb cull >> $HOME/../logs/cull.log
+    
+removes tweets that are at least one month old at 10:30 UTC on the 29th of each
+month. We have found doing this improves performance.  You can run both these
+commands like so:
+
+    stackato ssh prezbuzz ruby script/batch_harvester.rb ...
+
+Running '... batch_harvester.rb status` shows how many tweets are
+currently in the database, and gives their average age.
 
 ### Test the app in a browser:
 
 With a micro-cloud deployment of Stackato, the default URL would be:
 
-  http://buzz.stackato.local
+  http://prezbuzz.stackato.local
   
 A hosted version of the same app can be found here:
 
@@ -176,7 +190,8 @@ We haven't automated this step via the app UI yet.  Here's what you need to do:
    app is init'ed, but it's a good marker
 
 2. add new entries in `public/stylesheets/candidateBuzz.css` for
-   `body.vmware div#buzz_candidate` and `body.vmware #buzz_details`
+   `body.Smith div#buzz_candidate` and `body.Smith #buzz_details` (assuming
+   we're adding John Smith here, and we have no other candidates named "Smith").
    
 3. add a 128x128 PNG image for the new candidate in `public/images`.  If you're
    adding a candidate named John Smith, the image should be called `Smith.png`.
@@ -184,7 +199,7 @@ We haven't automated this step via the app UI yet.  Here's what you need to do:
 
 4. run 
 
-       mysql \`stackato service_conn vmwarebuzz` 
+       stackato dbshell prezbuzz
 
    and insert the new line in the candidates table.  Here's the syntax for
    John Smith with color magenta:
@@ -194,8 +209,9 @@ We haven't automated this step via the app UI yet.  Here's what you need to do:
     
     The color string is case-insensitive, but prezbuzz conventionally uses upper-case.
 
-5. run `stackato update`
+5. run
 
-6. run `script/driver.rb ... update`
+        stackato ssh prezbuzz ruby script/batch_harvester.rb update`
 
-7. test the app
+
+6. test the app
