@@ -119,7 +119,6 @@ class BatchHarvester
     @@url_base = 'http://search.twitter.com/search.json'
     def initialize
       @@_spammers = {
-        
       }
     end
     
@@ -306,18 +305,110 @@ def runHarvest(options)
   bhc = BatchHarvester.new(options[:verbose])
   bhc.updateTweets
   lim = options[:iterations]
-  sleepTime = options[:repeat] * 60
-  if sleepTime > 0
-    if lim > 0
+  if lim > 0
+    sleepTime = options[:repeat] * 60
+    sleepTime = 60 if sleepTime == 0
+    while lim > 0
       lim -= 0
-      while lim > 0
-	sleep sleepTime
-	bhc.updateTweets
-      end
+      sleep sleepTime
+      bhc.updateTweets
     end
   end
 end
 
+def removeOldTweets(options)
+  cutoffDate = options[:cutoffDate]
+  $stderr.puts("************ removeOldTweets: cutoffDate:#{cutoffDate}")
+  if cutoffDate.nil?
+    cutoffDate = DateTime.now.utc - 1.month
+  else
+    cutoffDate = DateTime.parse(cutoffDate, true)
+  end
+  data = {
+    :before => {
+      :tweets => Tweet.count,
+      :duplicates => DuplicateTweet.count,
+      :twitter_users =>  TwitterUser.count,
+    }
+  }
+  conn = Tweet.connection
+  # This one's easy, as there are no dependencies:
+  conn.execute("delete from duplicate_tweets
+		where publishedAt < #{conn.quote(cutoffDate)}")
+  rows = conn.select_rows("SELECT id, twitter_user_id from tweets
+		   where publishedAt < #{conn.quote(cutoffDate)}")
+  ids = rows.map {|row| row[0]}
+  user_ids = rows.map {|row| row[1]}
+  orig_ids = ids.clone
+  while ids.size > 0
+    ids_frag = ids.slice!(0, 100)
+    query = (["tweet_id = %d"] * ids_frag.size).join(" or ") % ids_frag
+    conn.execute("delete from candidates_tweets where " + query)
+    
+    query = (["orig_tweet_id = %d"] * ids_frag.size).join(" or ") % ids_frag
+    conn.execute("delete from duplicate_tweets where " + query)
+  end
+  Tweet.delete(orig_ids)
+  user_ids_to_drop = []
+  while user_ids.size > 0
+    user_ids_frag = user_ids.slice!(0, 100)
+    query = (["twitter_user_id = %d"] * user_ids_frag.size).join(" or ") % user_ids_frag
+    found_user_ids = conn.select_rows("select twitter_user_id from tweets where " + query).map{|row| row[0]}
+    user_ids_to_drop += user_ids_frag - found_user_ids
+  end
+  TwitterUser.delete(user_ids_to_drop)
+  data[:after] = {
+    :tweets => Tweet.count,
+    :duplicates => DuplicateTweet.count,
+    :twitter_users =>  TwitterUser.count,
+  }
+  if options[:verbose]
+    $stderr.puts("Removed #{data[:before][:tweets] - data[:after][:tweets]} tweets")
+    $stderr.puts("        #{data[:before][:duplicates] - data[:after][:duplicates]} duplicates")
+    $stderr.puts("        #{data[:before][:twitter_users] - data[:after][:twitter_users]} users")
+  end
+end
+  
+def readableTime(dayPart)
+  numDays = dayPart.floor
+  dayPart -= numDays
+  hoursPart = (dayPart - numDays) * 24
+  numHours = hoursPart.floor
+  minutesPart = (hoursPart - numHours) * 60
+  numMinutes = minutesPart.floor
+  numSeconds = ((minutesPart - numMinutes)*60).floor
+  s = []
+  s << "#{numDays} days" if numDays > 0
+  s << "#{numHours} hours" if numHours > 0 || s.size > 0
+  s << "#{numMinutes} minutes" if numMinutes > 0 || s.size > 0
+  s << "#{numSeconds} seconds" if numSeconds > 0
+  return s.join(", ")
+  
+end
+def showStatus(options)
+  data = {
+    :tweets => Tweet.count,
+    :duplicates => DuplicateTweet.count,
+    :twitter_users =>  TwitterUser.count,
+  }
+  now = DateTime.now.utc
+  relative_times = Tweet.find(:all).map { |tw|
+    (now - DateTime.parse(tw.publishedAt.to_s)).to_f
+  }
+  maxTime = relative_times.max
+  minTime = relative_times.min
+  meanTime = relative_times.sum / relative_times.size
+  stdDev = ((relative_times.map{|r| (r - meanTime)**2  }.sum) / relative_times.size) ** 0.5
+  
+  $stderr.puts("#tweets:        #{data[:tweets]}")
+  $stderr.puts("#duplicates:    #{data[:duplicates]} ")
+  $stderr.puts("#twitter_users: #{data[:twitter_users]} ")
+  $stderr.puts("maxTime = #{maxTime}(raw), ... #{readableTime(maxTime)}")
+  $stderr.puts("minTime = #{readableTime(minTime)}")
+  $stderr.puts("meanTime =  #{readableTime(meanTime)}")
+  $stderr.puts("stdDev =  #{readableTime(stdDev)}")
+end
+  
 if __FILE__ == $0
   # This happens when launched via rails [script/]runner
   # Invoke this command with rails runner app/controller/batch_harvester_controller.rb
@@ -333,25 +424,39 @@ if __FILE__ == $0
   else
     #args = []
   end
-  options = {:verbose => false, :background => false, :repeat => 0, :iterations => 0}
+  options = {:verbose => false,
+	     :background => false,
+	     :repeat => 0,
+	     :cutoffDate => nil,
+	     :iterations => 0}
   optparse = OptionParser.new do |opts|
-    opts.on('-v', '--verbose', "Be verbose") { options[:verbose] = true }
-    opts.on('-b', '--background', "Run this in a background process") { options[:background] = true }
+    opts.on('-V', '--verbose', "Be verbose") { options[:verbose] = true }
     opts.on('-r', '--repeat NUM', Integer, "Run this every N minutes") { |n|
       options[:repeat] = n
     }
     opts.on('-i', '--iterations NUM', Integer, "Run this only I times") { |i|
       options[:iterations] = i
     }
-  end
-  optparse.parse(args)
-  pp options
-  if options[:background]
-    fork do
-      options[:verbose] = false
-      runHarvest(options)
+    opts.on("-d", "--cutoff-date DATE", "Date") do |s|
+      options[:cutoffDate] = s
+      # Default for date is DateTime.now.utc - 1.month
+      # Format is YYYY-MM-DDThh:mm:ss+HH:MM
+      # If no timezone is given, UTC is assumed.
     end
-  else
+  end
+# -i 3 -v -d 2012-02-06T21:26:02+00:00 
+  optparse.parse!(args)
+  pp options
+  case args[0]
+  when "update"
     runHarvest(options)
+  when "cull"
+    removeOldTweets(options)
+  when "status"
+    showStatus(options)
+  else
+    
+    $stderr.puts "Usage: batch_harvester { -V | -r NUM | -i ITER | -d DATE } [update | cull | status]"
+    exit 1
   end
 end
