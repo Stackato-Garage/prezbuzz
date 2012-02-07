@@ -371,7 +371,6 @@ end
   
 def readableTime(dayPart)
   numDays = dayPart.floor
-  dayPart -= numDays
   hoursPart = (dayPart - numDays) * 24
   numHours = hoursPart.floor
   minutesPart = (hoursPart - numHours) * 60
@@ -403,7 +402,7 @@ def showStatus(options)
   $stderr.puts("#tweets:        #{data[:tweets]}")
   $stderr.puts("#duplicates:    #{data[:duplicates]} ")
   $stderr.puts("#twitter_users: #{data[:twitter_users]} ")
-  $stderr.puts("maxTime = #{maxTime}(raw), ... #{readableTime(maxTime)}")
+  $stderr.puts("maxTime = #{readableTime(maxTime)}")
   $stderr.puts("minTime = #{readableTime(minTime)}")
   $stderr.puts("meanTime =  #{readableTime(meanTime)}")
   $stderr.puts("stdDev =  #{readableTime(stdDev)}")
@@ -445,7 +444,7 @@ if __FILE__ == $0
     end
   end
 # -i 3 -v -d 2012-02-06T21:26:02+00:00 
-  optparse.parse!(args)
+  #optparse.parse!(args)
   pp options
   case args[0]
   when "update"
