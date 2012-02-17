@@ -138,19 +138,21 @@ In the top-level directory of the project, run:
 
     stackato push -n
 
-When prompted, choose "y" to bind a MySQL service to the app and accept
-the default service name.
-    
 ### Set database tables to use UTF-8
 
 Change the default character set for MySQL tables to accomodate UTF-8
 twitter data: 
     
-    stackato dbshell prezbuzz
+    stackato dbshell
     > ALTER TABLE tweets CONVERT TO CHARACTER SET utf8 collate utf8_unicode_ci;
     > quit
  
 ### Populate/Update twitter data:
+
+If this is the first time the app is being deployed, run the following
+command to pull in the initial set of data:
+
+    stackato run ruby script/batch_harvester.rb update
 
 Prezbuzz's stackato.yml file contains two cron lines which update and maintain
 the twitter data. The first line
@@ -167,7 +169,7 @@ removes tweets that are at least one month old at 10:30 UTC on the 29th of each
 month. We have found doing this improves performance.  You can run both these
 commands like so:
 
-    stackato ssh prezbuzz ruby script/batch_harvester.rb ...
+    stackato run ruby script/batch_harvester.rb ...
 
 Running '... batch_harvester.rb status` shows how many tweets are
 currently in the database, and gives their average age.

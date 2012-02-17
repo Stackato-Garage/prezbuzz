@@ -3,7 +3,7 @@ name: prezbuzz
 framework:
   runtime: ruby19
   
-mem: 2G
+mem: 256M
 
 services:
   mysql: mysql-prezbuzz
