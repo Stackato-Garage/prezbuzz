@@ -6,7 +6,7 @@ framework:
 mem: 256M
 
 services:
-  mysql: mysql-prezbuzz
+  mysql-prezbuzz: mysql
 
 # For Stackato 0.8.2, UTC timezone is used.
 # For dev VMs made after Jan 20th, local timezone is used. 
