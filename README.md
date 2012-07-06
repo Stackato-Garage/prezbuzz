@@ -34,6 +34,12 @@ any other required gems:
 
     bundle install
     
+## Deploying to Stackato:
+
+In the top-level directory of the project, run:
+
+    stackato push -n
+
 ## To run the app locally:
 
 The app is configured to run with mysql. To run with sqlite3
@@ -131,12 +137,6 @@ need to rebuild candidates.css, like so:
    curl 'http://localhost:3000/stylesheets/rcss?rcss=candidateBuzz' > public/stylesheets/candidateBuzz.css
 
 This will need to be done on the server as well.
-
-## Deploy to Stackato:
-
-In the top-level directory of the project, run:
-
-    stackato push -n
 
 ### Set database tables to use UTF-8
 
