@@ -444,7 +444,7 @@ if __FILE__ == $0
     end
   end
 # -i 3 -v -d 2012-02-06T21:26:02+00:00 
-  #optparse.parse!(args)
+  optparse.parse!(args)
   pp options
   case args[0]
   when "update"
