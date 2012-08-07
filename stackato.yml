@@ -3,6 +3,8 @@ framework:
   type: ruby
   runtime: ruby19
 mem: 256M
+min_version:
+  client: 1.4.3
 services:
   ${name}-db: mysql
 # For Stackato 0.8.2, UTC timezone is used.
