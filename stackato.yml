@@ -1,16 +1,10 @@
 name: prezbuzz
-
 framework:
+  type: ruby
   runtime: ruby19
-  
 mem: 256M
-
 services:
-  mysql-prezbuzz: mysql
-requirements:
-  staging:
-    ubuntu: [libsqlite3-dev]
-
+  ${name}-db: mysql
 # For Stackato 0.8.2, UTC timezone is used.
 # For dev VMs made after Jan 20th, local timezone is used. 
 # Verify using `stackato run prezbuzz date` or `stackato run prezbuzz cat /etc/timezone`
