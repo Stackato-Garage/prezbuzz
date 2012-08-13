@@ -1,6 +1,6 @@
 name: prezbuzz
 framework:
-  type: ruby
+  type: rails3
   runtime: ruby19
 mem: 256M
 min_version:
