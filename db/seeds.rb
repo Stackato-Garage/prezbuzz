@@ -33,6 +33,9 @@ class DataInitializer
     else
       #$stderr.puts("Database isn't empty")
     end
+    if Tweet.count == 0
+      Rake::Task["harvest:update"].invoke(true)
+    end
   end
   
   def reload

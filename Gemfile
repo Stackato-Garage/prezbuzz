@@ -1,5 +1,6 @@
 source 'http://rubygems.org'
 
+gem 'rake', '0.9.2.2'
 gem 'rails', '3.0.0'
 
 gem 'thin'
@@ -12,8 +13,8 @@ gem 'json'
 gem 'mysql2', "< 0.3"
 #end
 
-#group :development, :test do
-gem "sqlite3-ruby", :require => 'sqlite3'
+#group :development do
+#  gem "sqlite3-ruby", :require => 'sqlite3'
 #end
 
 # Use unicorn as the web server

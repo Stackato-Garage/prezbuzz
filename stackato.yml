@@ -7,9 +7,15 @@ mem: 256M
 
 services:
   mysql-prezbuzz: mysql
-requirements:
-  staging:
-    ubuntu: [libsqlite3-dev]
+
+
+#requirements:
+#  staging:
+#    ubuntu: [libsqlite3-dev]
+
+# hooks:
+#   post-staging:
+#     - bundle exec rake db:seed
 
 # For Stackato 0.8.2, UTC timezone is used.
 # For dev VMs made after Jan 20th, local timezone is used. 
@@ -17,6 +23,6 @@ requirements:
 # Update every hour
 # Cull items > 1 month old at 10:30AM on the 29th of each month.
 cron:
-  - "0 * * * * ruby script/batch_harvester.rb update >> $HOME/../logs/update.log"
-  - "30 10 29 * * ruby script/batch_harvester.rb cull >> $HOME/../logs/cull.log"
+  - "0 * * * * /opt/rubies/1.9.3-p125/bin/bundle exec rake 'harvest:update[false]' >> $HOME/../logs/update.log"
+  - "30 10 29 * * /opt/rubies/1.9.3-p125/bin/bundle exec rake 'harvest:cull[false,nil]' >> $HOME/../logs/cull.log"
 

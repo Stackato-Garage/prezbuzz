@@ -123,13 +123,16 @@ rebuild the CSS file:
 
     curl 'http://localhost:3000/stylesheets/rcss?rcss=candidateBuzz' > public/stylesheets/candidateBuzz.css
     
-Now populate the database:
+The first time the server starts up, it should start harvesting tweets and
+entering them in the database.   You can run this step manually with this command:
 
-    ruby script/batch_harvester.rb -V update
+    bundle exec rake 'harvest:update[true]'
+
+Set the argument to "false" to turn verbose output off.
 
 If it's slow, keep in mind that sqlite3 is a few orders of
 magnitude slower than a networked database. If you don't want to see all
-that output, you can leave off the "-V" option.
+that output, you can specify a verbosity option of "false".
 
 If you change the candidates' colors, or add/remove candidates, you'll
 need to rebuild candidates.css, like so:
@@ -157,21 +160,20 @@ command to pull in the initial set of data:
 Prezbuzz's stackato.yml file contains two cron lines which update and maintain
 the twitter data. The first line
 
-    0 * * * * ruby script/batch_harvester.rb update >> $HOME/../logs/update.log
+    0 * * * * /opt/rubies/1.9.3-p125/bin/bundle exec rake 'harvest:update[false]' >> $HOME/../logs/update.log
     
 loads new tweets once an hour, on the hour (we recommend changing the leading
 "0" to a random value between 5 and 55 to avoid swamping the twitter API). The
 second line
 
-    30 10 29 * * ruby script/batch_harvester.rb cull >> $HOME/../logs/cull.log
+    30 10 29 * * /opt/rubies/1.9.3-p125/bin/bundle exec rake 'harvest:cull[false,nil]' >> $HOME/../logs/cull.log
     
 removes tweets that are at least one month old at 10:30 UTC on the 29th of each
 month. We have found doing this improves performance.  You can run both these
-commands like so:
+commands like so manually from the command-line, leaving off the full path to
+bundle.
 
-    stackato run ruby script/batch_harvester.rb ...
-
-Running '... batch_harvester.rb status` shows how many tweets are
+Running '... rake harvest:status` shows how many tweets are
 currently in the database, and gives their average age.
 
 ### Test the app in a browser:
@@ -213,7 +215,7 @@ We haven't automated this step via the app UI yet.  Here's what you need to do:
 
 5. run
 
-        stackato ssh prezbuzz ruby script/batch_harvester.rb update`
+        stackato bundle exec rake 'harvest:update[false]'
 
 
 6. test the app
